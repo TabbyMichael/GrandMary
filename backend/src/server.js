@@ -12,6 +12,7 @@ import tributesRouter from './routes/tributes.js';
 import candlesRouter from './routes/candles.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
+import galleryRouter from './routes/gallery-sqlite.js';
 import { initializeDatabase } from './database/init.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -63,8 +64,9 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files (for any admin panel assets)
+// Static files (for any admin panel assets and gallery uploads)
 app.use('/admin/assets', express.static(path.join(__dirname, '../admin/assets')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -81,6 +83,7 @@ app.use('/api/tributes', tributesRouter);
 app.use('/api/candles', candlesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/gallery', galleryRouter);
 
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
