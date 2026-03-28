@@ -1,0 +1,826 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import GallerySupabase from '@/components/GallerySupabase';
+import { galleryService } from '@/lib/supabase-client';
+import { toast } from 'sonner';
+
+// Mock IntersectionObserver
+const mockIntersectionObserver = vi.fn();
+mockIntersectionObserver.mockReturnValue({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+});
+window.IntersectionObserver = mockIntersectionObserver;
+
+// Mock ResizeObserver
+const mockResizeObserver = vi.fn();
+mockResizeObserver.mockReturnValue({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+});
+window.ResizeObserver = mockResizeObserver;
+
+// Mock dependencies
+vi.mock('@/lib/supabase-client');
+vi.mock('sonner');
+
+const mockGalleryService = vi.mocked(galleryService);
+const mockToast = vi.mocked(toast);
+
+// Mock useTranslations hook
+vi.mock('@/hooks/useTranslations', () => ({
+  useTranslations: () => ({
+    t: (key: string) => key,
+    locale: 'en'
+  })
+}));
+
+// Mock GalleryPost type
+const mockGalleryPost = {
+  id: 1,
+  title: 'Test Post',
+  caption: 'Test Caption',
+  file_name: 'test.jpg',
+  original_file_name: 'test.jpg',
+  file_type: 'image' as const,
+  mime_type: 'image/jpeg',
+  file_size: 1024,
+  file_path: '/uploads/test.jpg',
+  thumbnail_path: '/uploads/thumbnails/test.jpg',
+  tags: ['test', 'gallery'],
+  is_public: true,
+  status: 'approved' as const,
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z',
+  uploader_name: 'Test User',
+  uploader_email: 'test@example.com',
+  uploader_relationship: 'Family',
+  event_date: '2023-01-01',
+  location: 'Test Location',
+  reaction_count: 5,
+  comment_count: 2,
+  view_count: 10,
+  gallery_reactions: [{ count: 5 }],
+  gallery_comments: [{ count: 2 }]
+};
+
+describe('GallerySupabase Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('Component Rendering', () => {
+    it('should render gallery component correctly', () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      expect(screen.getByTestId('gallery-supabase')).toBeInTheDocument();
+    });
+
+    it('should show loading state initially', () => {
+      // Arrange
+      mockGalleryService.getPosts.mockImplementation(() => new Promise(() => {}));
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      expect(screen.getByTestId('gallery-loading')).toBeInTheDocument();
+    });
+
+    it('should display error message when fetch fails', async () => {
+      // Arrange
+      const mockError = new Error('Failed to fetch posts');
+      mockGalleryService.getPosts.mockRejectedValue(mockError);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-error')).toBeInTheDocument();
+        expect(screen.getByText(/error/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should render empty state when no posts', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-empty')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Gallery Posts Display', () => {
+    it('should render posts grid when posts are available', async () => {
+      // Arrange
+      const mockPosts = [mockGalleryPost, { ...mockGalleryPost, id: 2 }];
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-grid')).toBeInTheDocument();
+        expect(screen.getAllByTestId('gallery-post')).toHaveLength(2);
+      });
+    });
+
+    it('should display post information correctly', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Test Post')).toBeInTheDocument();
+        expect(screen.getByText('Test Caption')).toBeInTheDocument();
+        expect(screen.getByText('Test User')).toBeInTheDocument();
+      });
+    });
+
+    it('should display reaction and comment counts', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('5')).toBeInTheDocument(); // reaction count
+        expect(screen.getByText('2')).toBeInTheDocument(); // comment count
+      });
+    });
+
+    it('should render different file types correctly', async () => {
+      // Arrange
+      const videoPost = { ...mockGalleryPost, id: 2, file_type: 'video' as const, file_name: 'test.mp4' };
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost, { ...mockGalleryPost, id: 2 }],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 2,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-post-image')).toBeInTheDocument();
+        expect(screen.getByTestId('gallery-post-video')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Post Interactions', () => {
+    it('should handle post click to view details', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('post-details-modal')).toBeInTheDocument();
+        expect(screen.getByText('Test Post')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle reaction addition', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.addReaction.mockResolvedValue({});
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      // Assert
+      await waitFor(() => {
+        const reactionButton = screen.getByTestId('reaction-button-heart');
+        fireEvent.click(reactionButton);
+      });
+
+      expect(mockGalleryService.addReaction).toHaveBeenCalledWith(1, {
+        reaction_type: 'heart',
+        reactor_name: expect.any(String),
+        reactor_email: expect.any(String),
+        reactor_ip: expect.any(String)
+      });
+      expect(mockToast.success).toHaveBeenCalledWith('Reaction added successfully');
+    });
+
+    it('should handle reaction addition error', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.addReaction.mockRejectedValue(new Error('Reaction failed'));
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      // Assert
+      await waitFor(() => {
+        const reactionButton = screen.getByTestId('reaction-button-heart');
+        fireEvent.click(reactionButton);
+      });
+
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to add reaction');
+    });
+
+    it('should handle comment submission', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.addComment.mockResolvedValue({});
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      // Assert
+      await waitFor(() => {
+        const commentInput = screen.getByTestId('comment-input');
+        const submitButton = screen.getByTestId('comment-submit-button');
+        
+        fireEvent.change(commentInput, { target: { value: 'Great post!' } });
+        fireEvent.click(submitButton);
+      });
+
+      expect(mockGalleryService.addComment).toHaveBeenCalledWith(1, {
+        commenter_name: expect.any(String),
+        commenter_email: expect.any(String),
+        comment_text: 'Great post!'
+      });
+      expect(mockToast.success).toHaveBeenCalledWith('Comment added successfully');
+    });
+
+    it('should handle comment submission error', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.addComment.mockRejectedValue(new Error('Comment failed'));
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      // Assert
+      await waitFor(() => {
+        const commentInput = screen.getByTestId('comment-input');
+        const submitButton = screen.getByTestId('comment-submit-button');
+        
+        fireEvent.change(commentInput, { target: { value: 'Great post!' } });
+        fireEvent.click(submitButton);
+      });
+
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to add comment');
+    });
+  });
+
+  describe('Filtering and Search', () => {
+    it('should filter posts by file type', async () => {
+      // Arrange
+      const mockPosts = [mockGalleryPost];
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const filterSelect = screen.getByTestId('filter-select');
+        fireEvent.change(filterSelect, { target: { value: 'image' } });
+      });
+
+      // Assert
+      expect(mockGalleryService.getPosts).toHaveBeenCalledWith({
+        type: 'image',
+        limit: 20,
+        page: 1
+      });
+    });
+
+    it('should search posts by keyword', async () => {
+      // Arrange
+      const mockPosts = [mockGalleryPost];
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const searchInput = screen.getByTestId('search-input');
+        fireEvent.change(searchInput, { target: { value: 'test' } });
+        fireEvent.keyDown(searchInput, { key: 'Enter' });
+      });
+
+      // Assert
+      expect(mockGalleryService.getPosts).toHaveBeenCalledWith({
+        search: 'test',
+        limit: 20,
+        page: 1
+      });
+    });
+
+    it('should filter posts by tags', async () => {
+      // Arrange
+      const mockPosts = [mockGalleryPost];
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const tagFilter = screen.getByTestId('tag-filter-test');
+        fireEvent.click(tagFilter);
+      });
+
+      // Assert
+      expect(mockGalleryService.getPosts).toHaveBeenCalledWith({
+        tags: 'test',
+        limit: 20,
+        page: 1
+      });
+    });
+  });
+
+  describe('Pagination', () => {
+    it('should load more posts on pagination', async () => {
+      // Arrange
+      const mockPosts = Array.from({ length: 40 }, (_, i) => ({ 
+        ...mockGalleryPost, 
+        id: i + 1 
+      }));
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const loadMoreButton = screen.getByTestId('load-more-button');
+        fireEvent.click(loadMoreButton);
+      });
+
+      // Assert
+      expect(mockGalleryService.getPosts).toHaveBeenCalledWith({
+        limit: 20,
+        page: 2
+      });
+    });
+
+    it('should hide load more button when no more posts', async () => {
+      // Arrange
+      const mockPosts = Array.from({ length: 15 }, (_, i) => ({ 
+        ...mockGalleryPost, 
+        id: i + 1 
+      }));
+      mockGalleryService.getPosts.mockResolvedValue(mockPosts);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByTestId('load-more-button')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Modal Interactions', () => {
+    it('should close modal when clicking outside', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      await waitFor(() => {
+        const modal = screen.getByTestId('post-details-modal');
+        fireEvent.click(modal);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByTestId('post-details-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should close modal when clicking close button', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+      mockGalleryService.getPost.mockResolvedValue({
+        post: mockGalleryPost,
+        reactions: [],
+        comments: []
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        fireEvent.click(post);
+      });
+
+      await waitFor(() => {
+        const closeButton = screen.getByTestId('modal-close-button');
+        fireEvent.click(closeButton);
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByTestId('post-details-modal')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle network errors gracefully', async () => {
+      // Arrange
+      const networkError = new Error('Network error');
+      networkError.name = 'NetworkError';
+      mockGalleryService.getPosts.mockRejectedValue(networkError);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-error')).toBeInTheDocument();
+        expect(screen.getByText(/network error/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should handle malformed data gracefully', async () => {
+      // Arrange
+      const malformedData = [null, undefined, {}];
+      mockGalleryService.getPosts.mockResolvedValue(malformedData as any);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-grid')).toBeInTheDocument();
+        // Should not crash and handle empty/invalid posts gracefully
+      });
+    });
+
+    it('should retry failed requests', async () => {
+      // Arrange
+      mockGalleryService.getPosts
+        .mockRejectedValueOnce(new Error('First failure'))
+        .mockResolvedValueOnce([mockGalleryPost]);
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-error')).toBeInTheDocument();
+      });
+
+      const retryButton = screen.getByTestId('retry-button');
+      fireEvent.click(retryButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('gallery-grid')).toBeInTheDocument();
+        expect(mockGalleryService.getPosts).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('Performance Tests', () => {
+    it('should render large number of posts efficiently', async () => {
+      // Arrange
+      const largePosts = Array.from({ length: 100 }, (_, i) => ({ 
+        ...mockGalleryPost, 
+        id: i + 1 
+      }));
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: largePosts,
+        pagination: {
+          currentPage: 1,
+          totalPages: 5,
+          totalItems: 100,
+          itemsPerPage: 20,
+          hasNextPage: true,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      const startTime = performance.now();
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        expect(screen.getAllByTestId('gallery-post')).toHaveLength(100);
+      });
+      const endTime = performance.now();
+
+      // Assert
+      expect(endTime - startTime).toBeLessThan(2000); // Should render within 2 seconds
+    });
+
+    it('should handle rapid filter changes', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const filterSelect = screen.getByTestId('filter-select');
+        
+        // Simulate rapid filter changes
+        fireEvent.change(filterSelect, { target: { value: 'image' } });
+        fireEvent.change(filterSelect, { target: { value: 'video' } });
+        fireEvent.change(filterSelect, { target: { value: 'all' } });
+      });
+
+      // Assert
+      expect(mockGalleryService.getPosts).toHaveBeenCalledTimes(4); // Initial + 3 changes
+    });
+  });
+
+  describe('Accessibility Tests', () => {
+    it('should have proper ARIA labels', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        expect(post).toHaveAttribute('role', 'article');
+        expect(post).toHaveAttribute('aria-label', expect.stringContaining('Test Post'));
+      });
+    });
+
+    it('should support keyboard navigation', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+      
+      await waitFor(() => {
+        const post = screen.getByTestId('gallery-post');
+        post.focus();
+        fireEvent.keyDown(post, { key: 'Enter' });
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId('post-details-modal')).toBeInTheDocument();
+      });
+    });
+
+    it('should announce changes to screen readers', async () => {
+      // Arrange
+      mockGalleryService.getPosts.mockResolvedValue({
+        posts: [mockGalleryPost],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      });
+
+      // Act
+      render(<GallerySupabase />);
+
+      // Assert
+      await waitFor(() => {
+        const statusRegion = screen.getByRole('status');
+        expect(statusRegion).toBeInTheDocument();
+      });
+    });
+  });
+});
