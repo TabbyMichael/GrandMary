@@ -26,13 +26,16 @@ jobs:
     
     - name: Install dependencies
       run: |
+        echo "Installing frontend dependencies..."
         npm ci
+        echo "Installing backend dependencies..."
         cd backend && npm ci
+        echo "Dependencies installed successfully"
     
     - name: Run linting
       run: |
-        npm run lint || true
-        cd backend && npm run lint || true
+        npm run lint
+        cd backend && npm run lint
     
     - name: Run type checking
       run: |
@@ -41,8 +44,11 @@ jobs:
     
     - name: Run unit tests
       run: |
+        echo "Running frontend tests..."
         npm run test
+        echo "Running backend tests..."
         cd backend && npm test
+        echo "All tests completed"
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

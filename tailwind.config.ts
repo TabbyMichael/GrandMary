@@ -82,20 +82,20 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        "accordion-down": {
+        accordionDown: {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
-        "accordion-up": {
+        accordionUp: {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "fade-up": {
-          from: { opacity: "0", transform: "translateY(30px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+        fadeUp: {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0px)" },
         },
-        "float": {
-          "0%, 100%": { transform: "translateY(0)" },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
       },
