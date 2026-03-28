@@ -1,4 +1,4 @@
-export type Locale = "en" | "sw";
+export type Locale = "en" | "sw" | "ki";
 
 export const translations = {
   en: {
@@ -152,6 +152,79 @@ export const translations = {
     footer: {
       tagline: "Milele moyoni mwetu",
       credit: "Imetengenezwa kwa upendo na familia yake",
+    },
+  },
+  ki: {
+    nav: {
+      story: "Makarania",
+      timeline: "Mucii",
+      tributes: "Mathako",
+      lightCandle: "Wandika Mucii",
+    },
+    hero: {
+      subtitle: "Utheri Waku wa",
+      tagline: "Maisha ma mathaga matuku \u00B7 Muthembo wa muthuri",
+      candlesLit: "methia imethandikwo mukumbukira wake",
+    },
+    bio: {
+      label: "Makarania Ma",
+      title: "Na Magirima Ma",
+      quote:
+        "\u201CKiuhire kia nginya nikandikire ndarirania ya mwaki \u2014 waku nikandikire wendo muthima ma ciana.\u201D",
+      p1: "Mary Wangui arari mutumia wa nguvu ya muthambo na wendo utaragirirwo. Aciarirwo mukihururu kia Kenya ya githungu, akoragwo akumenya indo cia thakame \u2014 iguti wa kuhura, iguti wa kuhura, na iguti wa gutitirwo na gutiga.",
+      p2: "Athonwo akari mwana na ekaragwo nyumba yakoragwo mutwe wa maburi. Kiini kya githeke kirakagirwo, na maigua make mataragirwo na thirikari na athenyi. Aari na kihugira kia kumuthikiria andu aingi gutiga gutaragwo, gutigwo, na guthekwo.",
+      p3: "Muthia ma maithe ma Mary, araragwo na thirikari kiria githeke, ciana ciake, na mwega wa muthenya uthonde. Aiteithirie na muthenya muthonde ni thigari, na aithagwo hitho \u2014 na mwega, na wega, na na imeri itagiragirwo wendo ndi kiuhire kia guthemba.",
+    },
+    timeline: {
+      label: "Thutha Wa",
+      title: "Maisha ma Mihango",
+      milestones: [
+        {
+          year: "Miaka ya Mbere",
+          title: "Uthiriji Mukihururu",
+          description:
+            "Aciarirwo mukihururu kia kiaru kia kijani, Mary aragwo akiragirwo na mwega wa thitu. Wendo wake kihururu na na andu wake wakaratire haku \u2014 irongo riracokire gutongoria igiri riacokire aigwo.",
+        },
+        {
+          year: "Miaka ya Mwaki",
+          title: "Mutwe wa Nyumba",
+          description:
+            "Mary ekaragwo mwaki uthuthagirwo na wendo, kigwete, na gutikirania. Meza yaake irakagirwo, murimu waake warakagirwo. Muthembo wa maburi wari kigoco, na yeye aari daima mukati \u2014 mburi ya andu aingi wakiragiragwo.",
+        },
+        {
+          year: "Miaka ya Thuthu",
+          title: "Githeke ya Mwega",
+          description:
+            "Muthia ma maithe ma Mary, araragwo na mathabu mukiria githeke yaake na muthembo munini wa muthenya uthonde. Araragwo maua maake na utugi uthonde uracokire kumuthikiria andu aingi \u2014 na kinya, na wendo, na mwega.",
+        },
+      ],
+    },
+    tributes: {
+      label: "Magirima ma Wendo",
+      title: "Ukuta wa Mathako",
+      shareTitle: "Gwetaniria Kumbukumbu",
+      namePlaceholder: "Ririwa",
+      relationshipPlaceholder: "Uthiiri waku (m., Mucokothani)",
+      messagePlaceholder: "Gwetaniria kumbukumbu ya Mary...",
+      submitButton: "Aha Mathako",
+      successToast: "Ndimu kwa mathako. Itaragwo igiri wa gutirwo.",
+      relationships: {
+        granddaughter: "Mucokothani (Mwana)",
+        son: "Mwana",
+        neighbor: "Muriri na Muthuri",
+        grandson: "Mucokothani (Mwana)",
+      },
+    },
+    candle: {
+      title: "Wandika Mucii",
+      count: "methia imethandikwo mukumbukira ya Mary Wangui",
+      button: "Wandika Mucii",
+      lit: "Mucii waku uiragwo \u2728",
+      toast: "Mucii waku wethandikwo kwa Mary. Ndimu. \uD83D\uDD6F\uFE0F",
+    },
+    footer: {
+      tagline: "Muthembo wa muthuri",
+      credit: "Imetungwo na wendo na mwaki",
     },
   },
 } as const;

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Moon, Sun, Globe } from "lucide-react";
 import { useLocale, useTheme } from "@/contexts/AppProviders";
 import { useTranslations } from "@/hooks/useTranslations";
+import { type Locale } from "@/lib/translations";
 
 const SiteNav = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -61,11 +62,16 @@ const SiteNav = () => {
 
             {/* Language toggle */}
             <button
-              onClick={() => setLocale(locale === "en" ? "sw" : "en")}
+              onClick={() => {
+                const locales: Locale[] = ["en", "sw", "ki"];
+                const currentIndex = locales.indexOf(locale);
+                const nextLocale = locales[(currentIndex + 1) % locales.length];
+                setLocale(nextLocale);
+              }}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-sans font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Globe className="w-3.5 h-3.5" />
-              {locale === "en" ? "SW" : "EN"}
+              {locale === "en" ? "KI" : locale === "sw" ? "EN" : "SW"}
             </button>
           </div>
         </div>
@@ -79,10 +85,15 @@ const SiteNav = () => {
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           <button
-            onClick={() => setLocale(locale === "en" ? "sw" : "en")}
+            onClick={() => {
+              const locales: Locale[] = ["en", "sw", "ki"];
+              const currentIndex = locales.indexOf(locale);
+              const nextLocale = locales[(currentIndex + 1) % locales.length];
+              setLocale(nextLocale);
+            }}
             className="px-2 py-1 rounded-full text-xs font-sans font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            {locale === "en" ? "SW" : "EN"}
+            {locale === "en" ? "KI" : locale === "sw" ? "EN" : "SW"}
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
