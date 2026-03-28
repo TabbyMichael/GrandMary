@@ -71,7 +71,7 @@ const SiteNav = () => {
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-sans font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Globe className="w-3.5 h-3.5" />
-              {locale === "en" ? "KI" : locale === "sw" ? "EN" : "SW"}
+              {locale === "en" ? "Kikuyu" : locale === "sw" ? "English" : "Swahili"}
             </button>
           </div>
         </div>
@@ -93,7 +93,7 @@ const SiteNav = () => {
             }}
             className="px-2 py-1 rounded-full text-xs font-sans font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            {locale === "en" ? "KI" : locale === "sw" ? "EN" : "SW"}
+            {locale === "en" ? "Kikuyu" : locale === "sw" ? "English" : "Swahili"}
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
