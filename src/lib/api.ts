@@ -131,19 +131,27 @@ export const candlesApi = {
       {
         method: 'POST',
         body: JSON.stringify({}),
+        // Add longer timeout for candle API
+        signal: AbortSignal.timeout(10000) // 10 second timeout
       }
     );
   },
 
   // Get total candle count
   getCandleCount: async () => {
-    return apiRequest<CandleStats>('/candles/count');
+    return apiRequest<CandleStats>('/candles/count', {
+      // Add longer timeout for candle API
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
   },
 
   // Get recent candle activity
   getRecentCandles: async (limit = 50) => {
     const params = new URLSearchParams({ limit: limit.toString() });
-    return apiRequest<{ candles: any[]; total: number }>(`/candles/recent?${params}`);
+    return apiRequest<{ candles: any[]; total: number }>(`/candles/recent?${params}`, {
+      // Add longer timeout for candle API
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
   },
 
   // Get candle statistics
