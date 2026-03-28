@@ -1,4 +1,4 @@
-# 🌸 Everbloom Memorial Platform
+# 🌸 GRANDMA MARY Memorial Platform
 
 <div align="center">
 
@@ -417,7 +417,7 @@ For technical support, questions, or contributions:
 
 <div align="center">
 
-## 🌸 Everbloom
+## 🌸 GrandMa Mary
 
 ### *Where memories bloom eternally in the digital garden of remembrance*
 
