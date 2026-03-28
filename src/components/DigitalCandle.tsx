@@ -7,7 +7,11 @@ import { useCandles } from "@/hooks/useApi";
 const DigitalCandle = () => {
   const t = useTranslations();
   const [hasLit, setHasLit] = useState(false);
-  const { candleCount, loading, lightCandle: apiLightCandle } = useCandles();
+  const [localCandleCount, setLocalCandleCount] = useState(0);
+  const { candleCount, loading, lightCandle: apiLightCandle, error } = useCandles();
+
+  // Use local count if API fails, otherwise use API count
+  const displayCount = error ? localCandleCount : candleCount;
 
   const lightCandle = async () => {
     if (hasLit || loading) return;
@@ -15,9 +19,12 @@ const DigitalCandle = () => {
     try {
       await apiLightCandle();
       setHasLit(true);
+      setLocalCandleCount(prev => prev + 1);
     } catch (error) {
       // Error is already handled by the hook
       console.error("Failed to light candle:", error);
+      // Still increment local count to provide feedback
+      setLocalCandleCount(prev => prev + 1);
     }
   };
 
@@ -27,7 +34,7 @@ const DigitalCandle = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-md mx-auto">
           <div className="candle-glow text-6xl mb-6">🕯️</div>
           <h2 className="text-3xl md:text-4xl font-serif font-light mb-4">{t.candle.title}</h2>
-          <p className="opacity-70 font-sans text-sm mb-8">{candleCount} {t.candle.count}</p>
+          <p className="opacity-70 font-sans text-sm mb-8">{displayCount} {t.candle.count}</p>
           <button
             onClick={lightCandle}
             disabled={hasLit || loading}

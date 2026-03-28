@@ -90,6 +90,7 @@ export const useCandles = () => {
       const apiError = err as ApiError;
       setError(apiError.message);
       console.error('Failed to fetch candle count:', apiError);
+      // Don't show toast for candle count errors to avoid spamming users
     } finally {
       setLoading(false);
     }
@@ -181,5 +182,136 @@ export const useApiHealth = () => {
     loading,
     error,
     checkHealth,
+  };
+};
+
+export const useApi = () => {
+  const [token, setToken] = useState<string | null>(localStorage.getItem('adminToken'));
+
+  const get = async (endpoint: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  };
+
+  const put = async (endpoint: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  };
+
+  const deleteRequest = async (endpoint: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  };
+
+  return {
+    get,
+    put,
+    delete: deleteRequest,
+    token,
+    setToken,
+  };
+};
+
+export const useAdminAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('adminToken'));
+
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          setToken(data.token);
+          localStorage.setItem('adminToken', data.token);
+          setIsAuthenticated(true);
+          toast.success('Login successful');
+          return true;
+        }
+      }
+    } catch (error) {
+      toast.error('Login failed');
+      return false;
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem('adminToken');
+    setIsAuthenticated(false);
+    toast.success('Logged out successfully');
+  };
+
+  const checkAuth = () => {
+    const storedToken = localStorage.getItem('adminToken');
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
+  };
+
+  return {
+    isAuthenticated,
+    loading,
+    token,
+    login,
+    logout,
+    checkAuth,
   };
 };
