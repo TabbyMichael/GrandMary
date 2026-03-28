@@ -19,4 +19,10 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
+  test: {
+    setupFiles: ['./src/__tests__/vitest-setup-complete.ts'],
+    environment: 'jsdom',
+    globals: true,
+    css: true,
+  },
 }));

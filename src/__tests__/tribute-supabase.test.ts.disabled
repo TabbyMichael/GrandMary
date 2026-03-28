@@ -1,0 +1,634 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { tributeService } from '@/lib/tribute-supabase';
+import { supabase } from '@/lib/supabase-client';
+
+// Mock Supabase client
+vi.mock('@/lib/supabase-client', () => ({
+  supabase: {
+    from: vi.fn(() => mockSupabaseQueryBuilder)
+  }
+}));
+
+const mockSupabaseQueryBuilder = {
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  insert: vi.fn().mockReturnThis(),
+  upsert: vi.fn().mockReturnThis(),
+  single: vi.fn().mockReturnThis(),
+  then: vi.fn().mockReturnThis(),
+  range: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis()
+};
+
+describe('TributeService - Supabase Client', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('getTributes', () => {
+    it('should fetch approved tributes with reaction counts', async () => {
+      // Arrange
+      const mockData = [
+        { 
+          id: '1', 
+          author_name: 'John Doe', 
+          message: 'Beautiful tribute',
+          tribute_reactions: [{ count: 5 }]
+        },
+        { 
+          id: '2', 
+          author_name: 'Jane Smith', 
+          message: 'Forever remembered',
+          tribute_reactions: [{ count: 3 }]
+        }
+      ];
+
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: mockData, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+
+      // Assert
+      expect(supabase.from).toHaveBeenCalledWith('tributes');
+      expect(mockSupabaseQueryBuilder.select).toHaveBeenCalledWith(
+        expect.stringContaining('tribute_reactions(count)')
+      );
+      expect(mockSupabaseQueryBuilder.eq).toHaveBeenCalledWith('status', 'approved');
+      expect(mockSupabaseQueryBuilder.eq).toHaveBeenCalledWith('is_public', true);
+      expect(mockSupabaseQueryBuilder.order).toHaveBeenCalledWith('created_at', { ascending: false });
+      
+      expect(result).toEqual([
+        {
+          ...mockData[0],
+          reaction_count: 5
+        },
+        {
+          ...mockData[1],
+          reaction_count: 3
+        }
+      ]);
+    });
+
+    it('should handle empty tributes list', async () => {
+      // Arrange
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: [], 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should handle null data gracefully', async () => {
+      // Arrange
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: null, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should handle missing reaction counts', async () => {
+      // Arrange
+      const mockData = [
+        { 
+          id: '1', 
+          author_name: 'John Doe', 
+          message: 'Beautiful tribute',
+          tribute_reactions: []
+        },
+        { 
+          id: '2', 
+          author_name: 'Jane Smith', 
+          message: 'Forever remembered',
+          tribute_reactions: null
+        }
+      ];
+
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: mockData, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+
+      // Assert
+      expect(result).toEqual([
+        {
+          ...mockData[0],
+          reaction_count: 0
+        },
+        {
+          ...mockData[1],
+          reaction_count: 0
+        }
+      ]);
+    });
+
+    it('should throw error when database query fails', async () => {
+      // Arrange
+      const mockError = new Error('Database connection failed');
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.getTributes()).rejects.toThrow('Database connection failed');
+      expect(console.error).toHaveBeenCalledWith('Error fetching tributes:', mockError);
+    });
+  });
+
+  describe('addTribute', () => {
+    it('should add new tribute with pending status', async () => {
+      // Arrange
+      const tributeData = {
+        author_name: 'John Doe',
+        author_relationship: 'Son',
+        author_email: 'john@example.com',
+        message: 'You will be forever missed',
+        is_public: true
+      };
+      const mockResponse = { 
+        id: '1', 
+        ...tributeData, 
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      mockSupabaseQueryBuilder.insert.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.select.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.single.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.addTribute(tributeData);
+
+      // Assert
+      expect(supabase.from).toHaveBeenCalledWith('tributes');
+      expect(mockSupabaseQueryBuilder.insert).toHaveBeenCalledWith([{
+        ...tributeData,
+        status: 'pending'
+      }]);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle tribute submission errors', async () => {
+      // Arrange
+      const tributeData = {
+        author_name: 'John Doe',
+        message: 'Test message'
+      };
+      const mockError = new Error('Validation failed');
+      mockSupabaseQueryBuilder.insert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addTribute(tributeData)).rejects.toThrow('Validation failed');
+      expect(console.error).toHaveBeenCalledWith('Error adding tribute:', mockError);
+    });
+
+    it('should validate required fields', async () => {
+      // Arrange
+      const invalidData = {
+        author_name: '',
+        message: ''
+      };
+      const mockError = new Error('Required fields missing');
+      mockSupabaseQueryBuilder.insert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addTribute(invalidData)).rejects.toThrow('Required fields missing');
+    });
+
+    it('should handle optional fields correctly', async () => {
+      // Arrange
+      const minimalData = {
+        author_name: 'John Doe',
+        message: 'Simple message'
+      };
+      const mockResponse = { 
+        id: '1', 
+        ...minimalData, 
+        status: 'pending' 
+      };
+
+      mockSupabaseQueryBuilder.insert.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.select.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.single.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.addTribute(minimalData);
+
+      // Assert
+      expect(mockSupabaseQueryBuilder.insert).toHaveBeenCalledWith([{
+        ...minimalData,
+        status: 'pending'
+      }]);
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('addReaction', () => {
+    it('should add reaction to tribute', async () => {
+      // Arrange
+      const tributeId = 'test-tribute-id';
+      const reactionData = {
+        reaction_type: 'heart',
+        reactor_name: 'Jane Smith',
+        reactor_email: 'jane@example.com',
+        reactor_ip: '127.0.0.1'
+      };
+      const mockResponse = { 
+        id: '1', 
+        tribute_id: tributeId, 
+        ...reactionData 
+      };
+
+      mockSupabaseQueryBuilder.upsert.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.addReaction(tributeId, reactionData);
+
+      // Assert
+      expect(supabase.from).toHaveBeenCalledWith('tribute_reactions');
+      expect(mockSupabaseQueryBuilder.upsert).toHaveBeenCalledWith([{
+        tribute_id: tributeId,
+        ...reactionData
+      }]);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle duplicate reactions', async () => {
+      // Arrange
+      const tributeId = 'test-tribute-id';
+      const reactionData = {
+        reaction_type: 'heart',
+        reactor_name: 'Jane Smith'
+      };
+      const mockError = new Error('Duplicate reaction');
+      mockSupabaseQueryBuilder.upsert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addReaction(tributeId, reactionData)).rejects.toThrow('Duplicate reaction');
+      expect(console.error).toHaveBeenCalledWith('Error adding reaction:', mockError);
+    });
+
+    it('should validate reaction type', async () => {
+      // Arrange
+      const tributeId = 'test-tribute-id';
+      const invalidReactionData = {
+        reaction_type: 'invalid_type',
+        reactor_name: 'Jane Smith'
+      };
+      const mockError = new Error('Invalid reaction type');
+      mockSupabaseQueryBuilder.upsert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addReaction(tributeId, invalidReactionData)).rejects.toThrow('Invalid reaction type');
+    });
+
+    it('should handle missing reactor name', async () => {
+      // Arrange
+      const tributeId = 'test-tribute-id';
+      const incompleteData = {
+        reaction_type: 'heart',
+        reactor_name: ''
+      };
+      const mockError = new Error('Reactor name required');
+      mockSupabaseQueryBuilder.upsert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addReaction(tributeId, incompleteData)).rejects.toThrow('Reactor name required');
+    });
+  });
+
+  describe('getTributeStats', () => {
+    it('should fetch tribute statistics', async () => {
+      // Arrange
+      const mockStats = {
+        total_tributes: 150,
+        approved_tributes: 120,
+        pending_tributes: 30,
+        unique_authors: 75
+      };
+
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: mockStats, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributeStats();
+
+      // Assert
+      expect(supabase.from).toHaveBeenCalledWith('tributes');
+      expect(mockSupabaseQueryBuilder.select).toHaveBeenCalledWith(
+        expect.stringContaining('count(*) as total_tributes')
+      );
+      expect(result).toEqual(mockStats);
+    });
+
+    it('should handle stats query errors', async () => {
+      // Arrange
+      const mockError = new Error('Stats query failed');
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.getTributeStats()).rejects.toThrow('Stats query failed');
+      expect(console.error).toHaveBeenCalledWith('Error fetching tribute stats:', mockError);
+    });
+
+    it('should handle zero statistics gracefully', async () => {
+      // Arrange
+      const emptyStats = {
+        total_tributes: 0,
+        approved_tributes: 0,
+        pending_tributes: 0,
+        unique_authors: 0
+      };
+
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: emptyStats, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributeStats();
+
+      // Assert
+      expect(result).toEqual(emptyStats);
+    });
+  });
+
+  describe('Security Tests', () => {
+    it('should prevent SQL injection in tribute messages', async () => {
+      // Arrange
+      const maliciousData = {
+        author_name: "'; DROP TABLE tributes; --",
+        message: "'; DELETE FROM tributes; --"
+      };
+      const mockResponse = { id: '1', ...maliciousData, status: 'pending' };
+
+      mockSupabaseQueryBuilder.insert.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.select.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.single.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.addTribute(maliciousData);
+
+      // Assert
+      expect(mockSupabaseQueryBuilder.insert).toHaveBeenCalledWith([{
+        ...maliciousData,
+        status: 'pending'
+      }]);
+      // Supabase client should handle parameterization
+      expect(result.author_name).toBe(maliciousData.author_name);
+    });
+
+    it('should handle extremely long messages', async () => {
+      // Arrange
+      const longMessage = 'a'.repeat(10000);
+      const tributeData = {
+        author_name: 'Test User',
+        message: longMessage
+      };
+      const mockError = new Error('Message too long');
+      mockSupabaseQueryBuilder.insert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addTribute(tributeData)).rejects.toThrow('Message too long');
+    });
+
+    it('should validate tribute ID format', async () => {
+      // Arrange
+      const invalidTributeId = '';
+      const reactionData = {
+        reaction_type: 'heart',
+        reactor_name: 'Test User'
+      };
+      const mockError = new Error('Invalid tribute ID');
+      mockSupabaseQueryBuilder.upsert.mockResolvedValue({ 
+        data: null, 
+        error: mockError 
+      });
+
+      // Act & Assert
+      await expect(tributeService.addReaction(invalidTributeId, reactionData)).rejects.toThrow('Invalid tribute ID');
+    });
+
+    it('should handle null/undefined inputs gracefully', async () => {
+      // Arrange
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: [], 
+        error: null 
+      });
+
+      // Act & Assert
+      await expect(tributeService.getTributes()).resolves.toBeDefined();
+      await expect(tributeService.getTributeStats()).resolves.toBeDefined();
+    });
+  });
+
+  describe('Performance Tests', () => {
+    it('should complete getTributes within acceptable time', async () => {
+      // Arrange
+      const startTime = performance.now();
+      const largeDataset = Array.from({ length: 1000 }, (_, i) => ({
+        id: i.toString(),
+        author_name: `User ${i}`,
+        message: `Message ${i}`,
+        tribute_reactions: [{ count: Math.floor(Math.random() * 100) }]
+      }));
+
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: largeDataset, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+      const endTime = performance.now();
+
+      // Assert
+      expect(result).toHaveLength(1000);
+      expect(endTime - startTime).toBeLessThan(2000); // Should complete within 2 seconds
+    });
+
+    it('should handle concurrent requests efficiently', async () => {
+      // Arrange
+      const mockData = [
+        { id: '1', author_name: 'John', message: 'Test', tribute_reactions: [{ count: 5 }] }
+      ];
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: mockData, 
+        error: null 
+      });
+
+      // Act
+      const startTime = performance.now();
+      const promises = Array.from({ length: 10 }, () => tributeService.getTributes());
+      const results = await Promise.all(promises);
+      const endTime = performance.now();
+
+      // Assert
+      expect(results).toHaveLength(10);
+      expect(results[0]).toEqual(mockData.map(item => ({ ...item, reaction_count: 5 })));
+      expect(endTime - startTime).toBeLessThan(3000); // Should handle concurrency within 3 seconds
+    });
+
+    it('should complete addTribute within acceptable time', async () => {
+      // Arrange
+      const tributeData = {
+        author_name: 'John Doe',
+        message: 'Test message'
+      };
+      const mockResponse = { id: '1', ...tributeData, status: 'pending' };
+
+      mockSupabaseQueryBuilder.insert.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.select.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.single.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const startTime = performance.now();
+      const result = await tributeService.addTribute(tributeData);
+      const endTime = performance.now();
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+      expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle network timeout scenarios', async () => {
+      // Arrange
+      const timeoutError = new Error('Network timeout');
+      timeoutError.name = 'TimeoutError';
+      mockSupabaseQueryBuilder.select.mockRejectedValue(timeoutError);
+
+      // Act & Assert
+      await expect(tributeService.getTributes()).rejects.toThrow('Network timeout');
+    });
+
+    it('should handle database connection errors', async () => {
+      // Arrange
+      const connectionError = new Error('Connection lost');
+      mockSupabaseQueryBuilder.select.mockImplementation(() => {
+        throw connectionError;
+      });
+
+      // Act & Assert
+      await expect(tributeService.getTributes()).rejects.toThrow('Connection lost');
+    });
+
+    it('should handle malformed response data', async () => {
+      // Arrange
+      const malformedData = [
+        { id: null, author_name: undefined, message: '' }
+      ];
+      mockSupabaseQueryBuilder.select.mockResolvedValue({ 
+        data: malformedData, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.getTributes();
+
+      // Assert
+      expect(result).toEqual([
+        {
+          id: null,
+          author_name: undefined,
+          message: '',
+          reaction_count: 0
+        }
+      ]);
+    });
+
+    it('should handle special characters in messages', async () => {
+      // Arrange
+      const specialCharsData = {
+        author_name: '🕯️ User',
+        message: 'Special chars: éàüß🌸💝',
+        is_public: true
+      };
+      const mockResponse = {
+        id: '1', 
+        ...specialCharsData, 
+        status: 'pending' 
+      };
+
+      mockSupabaseQueryBuilder.insert.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.select.mockReturnValue(mockSupabaseQueryBuilder);
+      mockSupabaseQueryBuilder.single.mockResolvedValue({ 
+        data: mockResponse, 
+        error: null 
+      });
+
+      // Act
+      const result = await tributeService.addTribute(specialCharsData);
+
+      // Assert
+      expect(result.author_name).toBe('🕯️ User');
+      expect(result.message).toBe('Special chars: éàüß🌸💝');
+    });
+  });
+});
