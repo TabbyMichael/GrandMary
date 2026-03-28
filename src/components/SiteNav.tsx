@@ -16,6 +16,7 @@ const SiteNav = () => {
     { label: t.nav.story, href: "#story" },
     { label: t.nav.timeline, href: "#timeline" },
     { label: t.nav.tributes, href: "#tributes" },
+    { label: t.nav.gallery || "Gallery", href: "#gallery" },
     { label: t.nav.lightCandle, href: "#candle" },
   ];
 

@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import BiographySection from "@/components/BiographySection";
 import LifeTimeline from "@/components/LifeTimeline";
 import TributeWall from "@/components/TributeWall";
+import GallerySupabase from "@/components/GallerySupabase";
 import DigitalCandle from "@/components/DigitalCandle";
 import Footer from "@/components/Footer";
 
@@ -14,6 +15,7 @@ const Index = () => {
       <BiographySection />
       <LifeTimeline />
       <TributeWall />
+      <GallerySupabase />
       <DigitalCandle />
       <Footer />
     </div>
