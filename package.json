@@ -10,7 +10,13 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "npx playwright test",
+    "type-check": "tsc --noEmit",
+    "start:test": "npm run dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
