@@ -1,47 +1,71 @@
-# Everbloom Memorial Platform
+# 🌸 Everbloom Memorial Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![React Version](https://img.shields.io/badge/react-%5E18.0.0-blue.svg)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-%5E5.0.0-blue.svg)](https://www.typescriptlang.org/)
+<div align="center">
 
-> A comprehensive, production-ready memorial platform built with modern web technologies to honor and celebrate the lives of loved ones. This platform combines elegant frontend design with a robust backend API to create a meaningful digital memorial experience.
+![Everbloom Logo](https://img.shields.io/badge/Everbloom-Memorial%20Platform-purple?style=for-the-badge&logo=react)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![React Version](https://img.shields.io/badge/react-%5E18.0.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-%5E5.0.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+
+*A comprehensive, production-ready memorial platform built with modern web technologies to honor and celebrate the lives of loved ones. This platform combines elegant frontend design with a robust backend API to create a meaningful digital memorial experience.*
+
+[▶️ Live Demo](https://your-demo-link.com) • [📚 Documentation](./docs) • [🚀 Quick Start](#-quick-start)
+
+</div>
+
+---
 
 ## ✨ Features
 
-- 🕯️ **Digital Candles** - Light virtual candles in remembrance with real-time counting
-- 💝 **Tribute Wall** - Share heartfelt memories and messages with moderation
-- 📅 **Life Timeline** - Visual journey through significant life events
-- 🌍 **Multilingual** - English and Swahili language support
-- 📱 **Responsive Design** - Beautiful experience on all devices
-- 🔐 **Admin Panel** - Secure content management and analytics
-- 🎨 **Elegant UI** - Modern design with smooth animations
-- ♿ **Accessible** - WCAG 2.1 AA compliant interface
+<div align="center">
+
+| Feature | Description |
+|---------|-------------|
+| 🕯️ **Digital Candles** | Light virtual candles in remembrance with real-time counting |
+| 💝 **Tribute Wall** | Share heartfelt memories and messages with moderation |
+| 📅 **Life Timeline** | Visual journey through significant life events |
+| 🌍 **Multilingual** | English and Swahili language support |
+| 📱 **Responsive Design** | Beautiful experience on all devices |
+| 🔐 **Admin Panel** | Secure content management and analytics |
+| 🎨 **Elegant UI** | Modern design with smooth animations |
+| ♿ **Accessible** | WCAG 2.1 AA compliant interface |
+
+</div>
+
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+ and npm
-- Git for version control
-- Modern web browser
+### 📋 Prerequisites
 
-### One-Command Development
+- **Node.js** 18+ and npm
+- **Git** for version control
+- **Modern web browser** (Chrome 90+, Firefox 88+, Safari 14+)
+
+### ⚡ One-Command Development
+
 ```bash
 # Clone the repository
 git clone https://github.com/TabbyMichael/GrandMary.git
 cd GrandMary
 
-# Windows
+# Start development (Windows)
 .\scripts\start-full-dev.bat
 
-# Linux/Mac
+# Start development (Linux/Mac)
 chmod +x scripts/start-full-dev.sh
 ./scripts/start-full-dev.sh
 ```
 
-### Manual Setup
+### 🔧 Manual Setup
+
+<details>
+<summary>Click to expand manual setup instructions</summary>
+
 ```bash
-# Backend
+# Backend Setup
 cd backend
 npm install
 cp .env.example .env
@@ -49,87 +73,119 @@ npm run migrate
 npm run seed
 npm run dev
 
-# Frontend (new terminal)
+# Frontend Setup (new terminal)
+cd ..
 npm install
 npm run dev
 ```
 
+</details>
+
+---
+
 ## 🏗️ Architecture
 
-### Frontend (React + TypeScript)
-- **Framework**: React 18 with TypeScript
-- **Styling**: TailwindCSS with custom design system
-- **Animations**: Framer Motion for smooth interactions
-- **UI Components**: Radix UI + shadcn/ui
-- **State Management**: React Query (TanStack Query)
-- **Routing**: React Router DOM
-- **Build Tool**: Vite for optimal development experience
+<div align="center">
 
-### Backend (Node.js + Express)
-- **Runtime**: Node.js 18+ with ES modules
-- **Framework**: Express.js with middleware architecture
-- **Database**: SQLite with optimized indexing
-- **Authentication**: JWT with bcrypt password hashing
-- **Validation**: Joi schemas for input validation
-- **Security**: Helmet, CORS, rate limiting
-- **Process Management**: PM2-ready for production
+### 🎨 Frontend Stack
 
-## � Project Structure
+```typescript
+// Modern React Ecosystem
+{
+  "framework": "React 18 + TypeScript",
+  "styling": "TailwindCSS + shadcn/ui",
+  "animations": "Framer Motion",
+  "state": "TanStack Query",
+  "routing": "React Router DOM",
+  "build": "Vite"
+}
+```
+
+### ⚙️ Backend Stack
+
+```javascript
+// Robust Node.js Backend
+{
+  "runtime": "Node.js 18+",
+  "framework": "Express.js",
+  "database": "SQLite with indexing",
+  "auth": "JWT + bcrypt",
+  "validation": "Joi schemas",
+  "security": "Helmet + CORS + rate limiting"
+}
+```
+
+</div>
+
+---
+
+## 📁 Project Structure
 
 ```
 GrandMary/
-├── backend/                    # Node.js API Server
-│   ├── src/
-│   │   ├── routes/           # API endpoints
-│   │   │   ├── tributes.js  # Tribute management
-│   │   │   ├── candles.js   # Candle system
-│   │   │   ├── auth.js      # Authentication
-│   │   │   └── admin.js     # Admin panel
-│   │   ├── middleware/        # Cross-cutting concerns
-│   │   │   ├── auth.js      # JWT middleware
-│   │   │   └── validation.js # Input validation
-│   │   ├── database/         # Database layer
-│   │   │   ├── init.js      # Schema & connection
-│   │   │   └── seed.js      # Sample data
-│   │   ├── utils/            # Helper functions
-│   │   │   └── helpers.js    # Common utilities
-│   │   └── server.js        # Application entry
-│   ├── scripts/              # Development helpers
-│   ├── database/             # SQLite database files
-│   └── package.json
-├── src/                      # React Frontend
-│   ├── components/           # React components
-│   │   ├── ui/             # Reusable UI components
-│   │   ├── TributeWall.tsx  # Tribute submission/display
-│   │   ├── DigitalCandle.tsx # Candle lighting
-│   │   ├── LifeTimeline.tsx  # Life events timeline
-│   │   └── ...             # Other memorial components
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useApi.ts       # API integration hooks
-│   │   └── useTranslations.ts # i18n support
-│   ├── lib/                # Utilities and configs
-│   │   ├── api.ts          # API client
-│   │   └── translations.ts # Language data
-│   ├── contexts/            # React contexts
-│   └── pages/              # Route components
-├── scripts/                # Development scripts
-├── public/                 # Static assets
-└── docs/                   # Documentation
+├── 📂 backend/                    # Node.js API Server
+│   ├── 📂 src/
+│   │   ├── 📂 routes/           # API endpoints
+│   │   │   ├── 📄 tributes.js  # Tribute management
+│   │   │   ├── 📄 candles.js   # Candle system
+│   │   │   ├── 📄 auth.js      # Authentication
+│   │   │   └── 📄 admin.js     # Admin panel
+│   │   ├── 📂 middleware/        # Cross-cutting concerns
+│   │   │   ├── 📄 auth.js      # JWT middleware
+│   │   │   └── 📄 validation.js # Input validation
+│   │   ├── 📂 database/         # Database layer
+│   │   │   ├── 📄 init.js      # Schema & connection
+│   │   │   └── 📄 seed.js      # Sample data
+│   │   ├── 📂 utils/            # Helper functions
+│   │   │   └── 📄 helpers.js    # Common utilities
+│   │   └── 📄 server.js        # Application entry
+│   ├── 📂 scripts/              # Development helpers
+│   ├── 📂 database/             # SQLite database files
+│   └── 📄 package.json
+├── 📂 src/                      # React Frontend
+│   ├── 📂 components/           # React components
+│   │   ├── 📂 ui/             # Reusable UI components
+│   │   ├── 📄 TributeWall.tsx  # Tribute submission/display
+│   │   ├── 📄 DigitalCandle.tsx # Candle lighting
+│   │   ├── 📄 LifeTimeline.tsx  # Life events timeline
+│   │   └── 📄 ...             # Other memorial components
+│   ├── 📂 hooks/               # Custom React hooks
+│   │   ├── 📄 useApi.ts       # API integration hooks
+│   │   └── 📄 useTranslations.ts # i18n support
+│   ├── 📂 lib/                # Utilities and configs
+│   │   ├── 📄 api.ts          # API client
+│   │   └── 📄 translations.ts # Language data
+│   ├── 📂 contexts/            # React contexts
+│   └── 📂 pages/              # Route components
+├── 📂 scripts/                # Development scripts
+├── 📂 public/                 # Static assets
+└── 📂 docs/                   # Documentation
 ```
 
-## �️ Security Features
+---
 
-- 🔐 **JWT Authentication** - Secure token-based authentication
-- 🛡️ **Input Validation** - Comprehensive input sanitization with Joi
-- 🚦 **Rate Limiting** - Protection against abuse and spam
-- 🔒 **HTTPS Ready** - SSL/TLS configuration for production
-- 🛡️ **Security Headers** - Helmet.js for comprehensive protection
-- 🔍 **XSS Protection** - Input sanitization and CSP headers
-- 📊 **Activity Logging** - Complete audit trail for security
+## 🛡️ Security Features
+
+<div align="center">
+
+| Security Measure | Implementation |
+|----------------|----------------|
+| 🔐 **Authentication** | JWT tokens with bcrypt password hashing |
+| 🛡️ **Input Validation** | Comprehensive Joi schemas |
+| 🚦 **Rate Limiting** | Configurable per-IP limits |
+| 🔒 **HTTPS Ready** | SSL/TLS configuration |
+| 🛡️ **Security Headers** | Helmet.js protection |
+| 🔍 **XSS Protection** | Input sanitization & CSP |
+| 📊 **Activity Logging** | Complete audit trail |
+
+</div>
+
+---
 
 ## 📊 Database Schema
 
-Optimized SQLite database with strategic indexing:
+<details>
+<summary>📄 Click to view complete database schema</summary>
 
 ```sql
 -- Tributes submitted by users
@@ -177,24 +233,27 @@ CREATE TABLE analytics (
 );
 ```
 
-##  API Documentation
+</details>
 
-### Core Endpoints
+---
 
-#### Tributes
-```http
-GET    /api/tributes           # Fetch approved tributes
-POST   /api/tributes           # Submit new tribute
-GET    /api/tributes/stats      # Get tribute statistics
-```
+## 📚 API Documentation
 
-#### Candles
-```http
-POST   /api/candles            # Light a candle
-GET    /api/candles/count       # Get total count
-GET    /api/candles/recent     # Recent activity
-GET    /api/candles/stats       # Candle analytics
-```
+### 🔗 Core Endpoints
+
+| Endpoint | Method | Description |
+|-----------|---------|-------------|
+| `/api/tributes` | GET | Fetch approved tributes |
+| `/api/tributes` | POST | Submit new tribute |
+| `/api/tributes/stats` | GET | Get tribute statistics |
+| `/api/candles` | POST | Light a candle |
+| `/api/candles/count` | GET | Get total candle count |
+| `/api/candles/recent` | GET | Recent candle activity |
+| `/api/auth/login` | POST | Admin authentication |
+| `/api/admin/dashboard` | GET | Overview statistics |
+
+<details>
+<summary>🔧 View complete API reference</summary>
 
 #### Authentication
 ```http
@@ -213,73 +272,56 @@ DELETE /api/admin/tributes/:id           # Delete tribute
 GET    /api/admin/analytics    # Detailed analytics
 ```
 
-## 🎨 Frontend Features
+</details>
 
-### Interactive Components
-- **Tribute Wall**: Real-time tribute submission with pagination
-- **Digital Candles**: Animated candle lighting with live counting
-- **Life Timeline**: Interactive timeline with smooth animations
-- **Biography Section**: Rich content presentation with typography
-- **Responsive Navigation**: Mobile-optimized menu system
-
-### Technical Excellence
-- **Type Safety**: Full TypeScript implementation
-- **Performance**: Code splitting and lazy loading
-- **Accessibility**: ARIA labels and semantic HTML
-- **Internationalization**: Built-in multi-language support
-- **Error Boundaries**: Graceful error handling
-- **State Management**: Efficient server state synchronization
+---
 
 ## 🚀 Deployment
 
-### Quick Deploy Options
+### 🌐 Deployment Options
 
-#### Development
+| Platform | Type | Command |
+|-----------|--------|---------|
+| **Vercel** | Frontend | `vercel --prod` |
+| **Railway** | Backend | Connect GitHub repo |
+| **AWS** | Full Stack | Elastic Beanstalk/EC2 |
+| **DigitalOcean** | Full Stack | App Platform |
+| **Netlify** | Frontend | Static hosting |
+
+<details>
+<summary>⚙️ View deployment scripts</summary>
+
 ```bash
-# Start both frontend and backend
-npm run dev:full
+# Development
+npm run dev:full      # Start both services
+npm run dev:backend   # Backend only
+npm run dev:frontend  # Frontend only
 
-# Backend only
-npm run dev:backend
-
-# Frontend only
-npm run dev:frontend
+# Production
+npm run build         # Production build
+npm start             # Start production server
+pm2 start ecosystem.config.js  # PM2 deployment
 ```
 
-#### Production
-```bash
-# Build for production
-npm run build
+</details>
 
-# Start production server
-npm start
-
-# Deploy with PM2
-pm2 start ecosystem.config.js
-```
-
-### Platform-Specific Deployment
-
-- **Vercel** (Frontend) - `vercel --prod`
-- **Railway** (Backend) - Connect GitHub repository
-- **AWS** - Elastic Beanstalk or EC2 with Nginx
-- **DigitalOcean** - App Platform or Droplet
-- **Netlify** - Static frontend hosting
+---
 
 ## 📈 Performance
 
-### Frontend Optimizations
-- ⚡ **Bundle Splitting** - Automatic code splitting by routes
-- 🗜️ **Tree Shaking** - Dead code elimination
+### ⚡ Frontend Optimizations
+- 🗜️ **Bundle Splitting** - Automatic code splitting by routes
 - 🖼️ **Image Optimization** - Lazy loading and WebP support
-- 💾 **Caching Strategy** - React Query with intelligent caching
+- 💾 **Smart Caching** - React Query with intelligent caching
 - 📱 **Mobile First** - Progressive enhancement approach
 
-### Backend Performance
+### 🚀 Backend Performance
 - 🗄️ **Database Indexing** - Optimized queries with strategic indexes
-- � **Connection Pooling** - Efficient database connection management
-- 📊 **Analytics Tracking** - Real-time performance monitoring
-- 🛡️ **Rate Limiting** - Intelligent abuse prevention
+- 🔄 **Connection Pooling** - Efficient database connection management
+- 📊 **Real-time Analytics** - Performance monitoring
+- 🛡️ **Intelligent Rate Limiting** - Abuse prevention
+
+---
 
 ## 🧪 Testing
 
@@ -297,86 +339,70 @@ npm run test:backend
 npm run test:e2e
 ```
 
-### Test Coverage
-- **Unit Tests**: Jest for component and utility testing
-- **Integration Tests**: API endpoint testing with Supertest
-- **E2E Tests**: Playwright for complete user flows
-- **Type Checking**: TypeScript compilation validation
+| Test Type | Tool | Coverage |
+|-----------|-------|----------|
+| **Unit Tests** | Jest | Component & utility testing |
+| **Integration Tests** | Supertest | API endpoint testing |
+| **E2E Tests** | Playwright | Complete user flows |
+| **Type Checking** | TypeScript | Static validation |
 
-## 🔧 Development
-
-### Code Quality
-- **ESLint**: Consistent code formatting and rules
-- **Prettier**: Automated code formatting
-- **Husky**: Pre-commit hooks for quality
-- **TypeScript**: Static type checking
-
-### Scripts
-```bash
-# Development
-npm run dev              # Start development servers
-npm run dev:backend       # Backend only
-npm run dev:frontend      # Frontend only
-
-# Building
-npm run build            # Production build
-npm run build:dev        # Development build
-
-# Database
-npm run migrate           # Initialize database
-npm run seed             # Add sample data
-
-# Deployment
-npm run deploy            # Deploy to production
-```
-
-## 📋 Requirements
-
-### System Requirements
-- **Node.js**: 18.0.0 or higher
-- **npm**: 8.0.0 or higher
-- **Database**: SQLite 3.x (included)
-- **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
-
-### Browser Support
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions to help make Everbloom better! Here's how you can help:
+We welcome contributions! Here's how to help:
 
-### Development Standards
+### 📝 Development Standards
 - Follow existing code patterns and conventions
 - Write comprehensive tests for new features
 - Update documentation for API changes
 - Use semantic versioning for releases
 
-### Pull Request Process
+### 🔄 Pull Request Process
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Code Style
+### 🎨 Code Style
 - Use TypeScript for all new code
 - Follow ESLint rules and Prettier formatting
 - Write meaningful commit messages
 - Add tests for new functionality
 
+---
+
+## 📋 Requirements
+
+### 💻 System Requirements
+- **Node.js**: 18.0.0 or higher
+- **npm**: 8.0.0 or higher
+- **Database**: SQLite 3.x (included)
+- **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
+
+### 🌐 Browser Support
+- ✅ Chrome 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+
+---
+
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## 🙏 Acknowledgments
 
 - **Family & Friends** - For the inspiration and purpose behind this project
 - **React Team** - For the amazing framework and ecosystem
 - **TailwindCSS** - For the utility-first CSS framework
-- **Open Source Community** - For the incredible tools and libraries that make this possible
+- **Open Source Community** - For incredible tools and libraries that make this possible
+
+---
 
 ## 📞 Support
 
@@ -391,13 +417,14 @@ For technical support, questions, or contributions:
 
 <div align="center">
 
-**Everbloom** - Where memories bloom eternally in the digital garden of remembrance
+## 🌸 Everbloom
 
-*Built with ❤️, care, and modern engineering practices to honor those who matter most*
+### *Where memories bloom eternally in the digital garden of remembrance*
 
-[⭐ Star this repo](https://github.com/TabbyMichael/GrandMary) • [🍴 Fork this repo](https://github.com/TabbyMichael/GrandMary/fork)
+**Built with ❤️, care, and modern engineering practices to honor those who matter most**
+
+---
+
+[⭐ Star this repo](https://github.com/TabbyMichael/GrandMary) • [🍴 Fork this repo](https://github.com/TabbyMichael/GrandMary/fork) • [📧 Contact Us](mailto:support@everbloom.com)
 
 </div>
-#   G r a n d M a r y 
- 
- 
