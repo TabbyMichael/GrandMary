@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm Ivory, Rose & Dusty Blue palette */
+    --background: 40 33% 96%;
+    --foreground: 220 20% 20%;
+
+    --card: 40 30% 97%;
+    --card-foreground: 220 20% 20%;
+
+    --popover: 40 30% 97%;
+    --popover-foreground: 220 20% 20%;
+
+    --primary: 350 45% 55%;
+    --primary-foreground: 40 33% 98%;
+
+    --secondary: 210 30% 72%;
+    --secondary-foreground: 220 20% 15%;
+
+    --muted: 40 20% 92%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 350 30% 88%;
+    --accent-foreground: 350 45% 35%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 350 45% 55%;
+
+    --radius: 0.75rem;
+
+    /* Memorial-specific tokens */
+    --rose: 350 45% 55%;
+    --rose-light: 350 40% 90%;
+    --dusty-blue: 210 30% 72%;
+    --dusty-blue-light: 210 30% 92%;
+    --ivory: 40 33% 96%;
+    --ivory-warm: 35 40% 93%;
+    --sage: 150 15% 60%;
+    --gold-soft: 42 60% 70%;
+
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* Dark candle section */
+    --candle-bg: 220 20% 14%;
+    --candle-fg: 40 33% 96%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 20% 10%;
+    --foreground: 40 20% 92%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 40 20% 92%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 40 20% 92%;
+
+    --primary: 350 40% 62%;
+    --primary-foreground: 220 20% 10%;
+
+    --secondary: 210 20% 25%;
+    --secondary-foreground: 40 20% 92%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 40 10% 60%;
+
+    --accent: 350 20% 22%;
+    --accent-foreground: 350 40% 75%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 350 40% 62%;
+
+    --rose: 350 40% 62%;
+    --rose-light: 350 25% 25%;
+    --dusty-blue: 210 25% 50%;
+    --dusty-blue-light: 210 20% 20%;
+    --ivory: 220 20% 10%;
+    --ivory-warm: 220 15% 14%;
+    --gold-soft: 42 40% 45%;
+
+    --candle-bg: 220 20% 8%;
+    --candle-fg: 40 20% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Living background animation */
+@keyframes gradient-drift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 25%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  75% {
+    background-position: 25% 0%;
+  }
+}
+
+.living-background {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--ivory)) 0%,
+    hsl(var(--rose-light)) 25%,
+    hsl(var(--dusty-blue-light)) 50%,
+    hsl(var(--ivory-warm)) 75%,
+    hsl(var(--rose-light)) 100%
+  );
+  background-size: 400% 400%;
+  animation: gradient-drift 25s ease-in-out infinite;
+}
+
+/* Candle glow animation */
+@keyframes candle-flicker {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  25% { opacity: 1; transform: scale(1.05); }
+  50% { opacity: 0.9; transform: scale(0.98); }
+  75% { opacity: 1; transform: scale(1.02); }
+}
+
+.candle-glow {
+  animation: candle-flicker 3s ease-in-out infinite;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Timeline connector */
+.timeline-line {
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--rose-light)),
+    hsl(var(--dusty-blue)),
+    hsl(var(--rose-light))
+  );
+}
