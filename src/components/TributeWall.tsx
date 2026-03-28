@@ -1,11 +1,12 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Heart, Send, Loader2 } from "lucide-react";
+import { Heart, Send, Loader2, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslations } from "@/hooks/useTranslations";
 import { useTributes } from "@/hooks/useApi";
 import type { Tribute } from "@/lib/api";
+import ShareDialog from "@/components/ShareDialog";
 
 interface TributeCardProps {
   tribute: Tribute;
@@ -41,7 +42,15 @@ const TributeWall = () => {
   const [relationship, setRelationship] = useState("");
   const [message, setMessage] = useState("");
   
-  const { tributes, loading, submitTribute } = useTributes();
+  const { tributes, loading, submitTribute, pagination, fetchTributes } = useTributes();
+
+  const handlePageChange = (newPage: number) => {
+    fetchTributes(newPage, pagination.itemsPerPage);
+  };
+
+  const handleShare = async () => {
+    // ShareDialog will handle the sharing functionality
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,26 +89,73 @@ const TributeWall = () => {
   return (
     <section className="py-24 living-background" id="tributes">
       <div className="container mx-auto px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-          <p className="text-sm tracking-[0.3em] uppercase text-primary font-sans mb-3">{t.tributes.label}</p>
-          <h2 className="text-4xl md:text-5xl font-serif font-light text-foreground">{t.tributes.title}</h2>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
+          <div className="text-center flex-1">
+            <p className="text-sm tracking-[0.3em] uppercase text-primary font-sans mb-3">{t.tributes.label}</p>
+            <h2 className="text-4xl md:text-5xl font-serif font-light text-foreground">{t.tributes.title}</h2>
+          </div>
+          <ShareDialog>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
+          </ShareDialog>
         </motion.div>
 
-        {loading ? (
+        {loading && tributes.length === 0 ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-            {tributes.map((tribute, i) => (
-              <TributeCard 
-                key={tribute.id} 
-                tribute={tribute} 
-                index={i} 
-                relationship={getRelationshipDisplay(tribute.relationship)} 
-              />
-            ))}
+        ) : tributes.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">No tributes yet. Be the first to share a memory!</p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
+              {tributes.map((tribute, i) => (
+                <TributeCard 
+                  key={tribute.id} 
+                  tribute={tribute} 
+                  index={i} 
+                  relationship={getRelationshipDisplay(tribute.relationship)} 
+                />
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-8 mb-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={!pagination.hasPreviousPage || loading}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                
+                <span className="text-sm text-muted-foreground">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={!pagination.hasNextPage || loading}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-lg mx-auto">
