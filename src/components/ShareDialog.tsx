@@ -12,13 +12,13 @@ interface ShareDialogProps {
 const ShareDialog = ({ children }: ShareDialogProps) => {
   const [open, setOpen] = useState(false);
   const shareUrl = `${window.location.origin}${window.location.pathname}#tributes`;
-  const shareText = "Join me in sharing memories and tributes for Mary Wangui";
+  const shareText = "Join me in sharing memories and tributes for Mary Mathenge";
 
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Tribute Wall - Mary Wangui",
+          title: "Tribute Wall - Mary Mathenge",
           text: shareText,
           url: shareUrl,
         });
@@ -50,7 +50,7 @@ const ShareDialog = ({ children }: ShareDialogProps) => {
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent("Tribute Wall - Mary Wangui");
+    const subject = encodeURIComponent("Tribute Wall - Mary Mathenge");
     const body = encodeURIComponent(`${shareText}\n\nVisit the tribute wall: ${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };

@@ -187,4 +187,4 @@ Once you complete these steps, your Everbloom Memorial Gallery will be live with
 - Multilingual support
 - Beautiful, responsive design
 
-Your memorial site will truly honor Mary Wangui's memory with a professional, feature-rich gallery that friends and family can use to share and cherish memories together.
+Your memorial site will truly honor Mary Mathenge's memory with a professional, feature-rich gallery that friends and family can use to share and cherish memories together.

@@ -27,7 +27,7 @@ const HeroSection = () => {
             className="relative"
           >
             <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-rose-light shadow-2xl">
-              <img src={portraitImage} alt="Mary Wangui" width={800} height={1024} className="w-full h-full object-cover object-top" />
+              <img src={portraitImage} alt="Mary Mathenge" width={800} height={1024} className="w-full h-full object-cover object-top" />
             </div>
             <div className="absolute inset-0 rounded-full border-2 border-gold-soft opacity-40 candle-glow" />
           </motion.div>
@@ -37,7 +37,7 @@ const HeroSection = () => {
               {t.hero.subtitle}
             </p>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-foreground leading-tight">
-              Mary Wangui
+              Mary Mathenge
             </h1>
           </motion.div>
 

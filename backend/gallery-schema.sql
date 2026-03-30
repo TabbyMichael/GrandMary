@@ -1,5 +1,5 @@
 -- Memorial Gallery Database Schema
--- PostgreSQL implementation for Mary Wangui Memorial Gallery
+-- PostgreSQL implementation for Mary Mathenge Memorial Gallery
 
 -- Gallery posts table
 CREATE TABLE IF NOT EXISTS gallery_posts (

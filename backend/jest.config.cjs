@@ -1,7 +1,8 @@
 module.exports = {
   testEnvironment: 'node',
-  extensionsToTreatAsEsm: [],
+  extensionsToTreatAsEsm: ['.js'],
   globals: {},
+  preset: null,
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
     '**/*.(test|spec).(js|jsx|ts|tsx)'
@@ -13,5 +14,12 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  passWithNoTests: true
+  passWithNoTests: true,
+  transform: {},
+  transformIgnorePatterns: [
+    'node_modules/(?!(supabase|@supabase)/)'
+  ],
+  moduleNameMapping: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  }
 };

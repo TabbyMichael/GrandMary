@@ -22,7 +22,7 @@ export const translations = {
       title: "In Her Own Words",
       quote:
         "\u201CThe best thing I ever planted was not in my garden \u2014 it was love in my children\u2019s hearts.\u201D",
-      p1: "Mary Wangui was a woman of quiet strength and boundless generosity. Born in the highlands of Central Kenya, she grew up learning the rhythms of the land \u2014 when to plant, when to harvest, and when to simply be still and listen.",
+      p1: "Mary Mathenge was a woman of quiet strength and boundless generosity. Born in the highlands of Central Kenya, she grew up learning the rhythms of the land \u2014 when to plant, when to harvest, and when to simply be still and listen.",
       p2: "She married young and built a home that became the heart of her community. Her kitchen was never empty, and her counsel was sought by neighbors and strangers alike. She had a gift for making everyone feel seen, heard, and valued.",
       p3: "In her later years, Mary found deep joy in her garden, her grandchildren, and the simple beauty of each new morning. She believed that every day was a gift, and she lived accordingly \u2014 with grace, with purpose, and with an unshakeable faith that love is the only thing that truly endures.",
     },
@@ -71,7 +71,7 @@ export const translations = {
     // Candle
     candle: {
       title: "Light a Candle",
-      count: "candles have been lit in memory of Mary Wangui",
+      count: "candles have been lit in memory of Mary Mathenge",
       button: "Light a Candle",
       lit: "Your candle is burning \u2728",
       toast: "Your candle has been lit for Mary. Thank you. \uD83D\uDD6F\uFE0F",
@@ -140,7 +140,7 @@ export const translations = {
       title: "Kwa Maneno Yake Mwenyewe",
       quote:
         "\u201CKitu bora zaidi nilichopanda hakikuwa bustanini \u2014 kilikuwa upendo moyoni mwa watoto wangu.\u201D",
-      p1: "Mary Wangui alikuwa mwanamke wa nguvu tulivu na ukarimu usio na mipaka. Alizaliwa katika milima ya Kenya ya Kati, akakua akijifunza midundo ya ardhi \u2014 wakati wa kupanda, wakati wa kuvuna, na wakati wa kutulia na kusikiliza tu.",
+      p1: "Mary Mathenge alikuwa mwanamke wa nguvu tulivu na ukarimu usio na mipaka. Alizaliwa katika milima ya Kenya ya Kati, akakua akijifunza midundo ya ardhi \u2014 wakati wa kupanda, wakati wa kuvuna, na wakati wa kutulia na kusikiliza tu.",
       p2: "Alioa akiwa mdogo na akajenga nyumba iliyokuwa moyo wa jamii yake. Jiko lake halikuwa tupu kamwe, na ushauri wake ulitafutwa na majirani na wageni. Alikuwa na kipaji cha kumfanya kila mtu ajisikie kuonekana, kusikika, na kuthaminiwa.",
       p3: "Katika miaka yake ya mwisho, Mary alipata furaha kubwa katika bustani yake, wajukuu wake, na uzuri wa kila asubuhi mpya. Aliamini kwamba kila siku ni zawadi, na aliishi hivyo \u2014 kwa neema, kwa kusudi, na kwa imani isiyotikisika kwamba upendo ndio kitu pekee kinachobaki milele.",
     },
@@ -186,7 +186,7 @@ export const translations = {
     },
     candle: {
       title: "Washa Mshumaa",
-      count: "mishumaa imewashwa kwa kumbukumbu ya Mary Wangui",
+      count: "mishumaa imewashwa kwa kumbukumbu ya Mary Mathenge",
       button: "Washa Mshumaa",
       lit: "Mshumaa wako unawaka \u2728",
       toast: "Mshumaa wako umewashwa kwa Mary. Asante. \uD83D\uDD6F\uFE0F",
@@ -255,7 +255,7 @@ export const translations = {
       title: "Na Magirima Ma",
       quote:
         "\u201CKiuhire kia nginya nikandikire ndarirania ya mwaki \u2014 waku nikandikire wendo muthima ma ciana.\u201D",
-      p1: "Mary Wangui arari mutumia wa nguvu ya muthambo na wendo utaragirirwo. Aciarirwo mukihururu kia Kenya ya githungu, akoragwo akumenya indo cia thakame \u2014 iguti wa kuhura, iguti wa kuhura, na iguti wa gutitirwo na gutiga.",
+      p1: "Mary Mathenge arari mutumia wa nguvu ya muthambo na wendo utaragirirwo. Aciarirwo mukihururu kia Kenya ya githungu, akoragwo akumenya indo cia thakame \u2014 iguti wa kuhura, iguti wa kuhura, na iguti wa gutitirwo na gutiga.",
       p2: "Athonwo akari mwana na ekaragwo nyumba yakoragwo mutwe wa maburi. Kiini kya githeke kirakagirwo, na maigua make mataragirwo na thirikari na athenyi. Aari na kihugira kia kumuthikiria andu aingi gutiga gutaragwo, gutigwo, na guthekwo.",
       p3: "Muthia ma maithe ma Mary, araragwo na thirikari kiria githeke, ciana ciake, na mwega wa muthenya uthonde. Aiteithirie na muthenya muthonde ni thigari, na aithagwo hitho \u2014 na mwega, na wega, na na imeri itagiragirwo wendo ndi kiuhire kia guthemba.",
     },
@@ -301,7 +301,7 @@ export const translations = {
     },
     candle: {
       title: "Wandika Mucii",
-      count: "methia imethandikwo mukumbukira ya Mary Wangui",
+      count: "methia imethandikwo mukumbukira ya Mary Mathenge",
       button: "Wandika Mucii",
       lit: "Mucii waku uiragwo \u2728",
       toast: "Mucii waku wethandikwo kwa Mary. Ndimu. \uD83D\uDD6F\uFE0F",
