@@ -23,8 +23,12 @@ const GalleryPostCard = ({ post, onOpen }: { post: GalleryPost; onOpen: (post: G
     await addReaction('heart', name);
   };
 
-  const getFileUrl = (filePath: string) => {
-    return `http://localhost:3001/uploads/gallery/${filePath}`;
+  const getFileUrl = (fileName: string) => {
+    // Direct hardcoded URL as primary fallback
+    const url = `http://localhost:3001/uploads/gallery/${fileName}`;
+    console.log('🔗 Image URL:', url);
+    console.log('📁 File name:', fileName);
+    return url;
   };
 
   return (
@@ -44,6 +48,16 @@ const GalleryPostCard = ({ post, onOpen }: { post: GalleryPost; onOpen: (post: G
               alt={post.title || 'Gallery image'}
               className="w-full h-full object-cover"
               loading="lazy"
+              onLoad={(e) => {
+                console.log('✅ Image loaded successfully:', getFileUrl(post.file_name));
+              }}
+              onError={(e) => {
+                console.error('❌ Image failed to load:', getFileUrl(post.file_name));
+                console.error('📊 Post data:', post);
+                console.error('🌐 Network error:', e);
+                // Try fallback
+                e.currentTarget.src = `http://localhost:3001/uploads/gallery/${post.file_name}`;
+              }}
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

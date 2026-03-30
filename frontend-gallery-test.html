@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gallery Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .post { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .post img { width: 100%; height: 200px; object-fit: cover; }
+        .post-content { padding: 15px; }
+        .post h3 { margin: 0 0 10px 0; }
+        .post p { margin: 0; color: #666; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🌹 Everbloom Gallery Test</h1>
+    <div id="gallery">Loading...</div>
+    
+    <script>
+        // Simulate the exact same process as the frontend
+        const API_BASE_URL = 'http://localhost:3001/api';
+        
+        // This mimics the Gallery component's getFileUrl function
+        const getFileUrl = (fileName) => {
+            const baseUrl = API_BASE_URL.replace('/api', '') || 'http://localhost:3001';
+            const url = `${baseUrl}/uploads/gallery/${fileName}`;
+            console.log('🔗 Image URL constructed:', url);
+            return url;
+        };
+        
+        async function loadGallery() {
+            try {
+                console.log('🔄 Loading gallery from API...');
+                
+                const response = await fetch(`${API_BASE_URL}/gallery/posts`);
+                const data = await response.json();
+                
+                console.log('✅ API Response:', data);
+                console.log(`📊 Found ${data.posts.length} posts`);
+                
+                const galleryDiv = document.getElementById('gallery');
+                galleryDiv.innerHTML = '';
+                
+                data.posts.forEach((post, index) => {
+                    console.log(`📸 Processing post ${index + 1}: "${post.title}"`);
+                    
+                    const postDiv = document.createElement('div');
+                    postDiv.className = 'post';
+                    
+                    const imageUrl = getFileUrl(post.file_name);
+                    
+                    postDiv.innerHTML = `
+                        <div class="debug">
+                            <strong>Debug Info:</strong><br>
+                            Title: ${post.title}<br>
+                            File Type: ${post.file_type}<br>
+                            File Name: ${post.file_name}<br>
+                            Image URL: ${imageUrl}
+                        </div>
+                        ${post.file_type === 'image' ? 
+                            `<img src="${imageUrl}" alt="${post.title}" 
+                                 onload="console.log('✅ Image loaded: ${post.title}')"
+                                 onerror="console.error('❌ Image failed: ${post.title}')">` :
+                            `<div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0;">
+                                🎥 Video: ${post.title}
+                            </div>`
+                        }
+                        <div class="post-content">
+                            <h3>${post.title}</h3>
+                            <p>${post.caption || 'No caption'}</p>
+                            <p><small>By: ${post.uploader_name}</small></p>
+                        </div>
+                    `;
+                    
+                    galleryDiv.appendChild(postDiv);
+                });
+                
+                console.log('🎉 Gallery loaded successfully!');
+                
+            } catch (error) {
+                console.error('❌ Error loading gallery:', error);
+                document.getElementById('gallery').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Load gallery when page loads
+        window.onload = loadGallery;
+        
+        // Also add a button to reload
+        document.addEventListener('DOMContentLoaded', () => {
+            const reloadBtn = document.createElement('button');
+            reloadBtn.textContent = 'Reload Gallery';
+            reloadBtn.onclick = loadGallery;
+            document.body.insertBefore(reloadBtn, document.getElementById('gallery'));
+        });
+    </script>
+</body>
+</html>

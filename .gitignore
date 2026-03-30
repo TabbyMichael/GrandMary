@@ -22,3 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_ed25519
+secrets.json
+config.json
+*.p12
+*.pfx
+
+# Security and audit
+security-audit-findings.md
+leak-detector-report.json
+*.security-scan
