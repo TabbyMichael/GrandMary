@@ -12,8 +12,9 @@ import tributesRouter from './routes/tributes.js';
 import candlesRouter from './routes/candles.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
-import galleryRouter from './routes/gallery-sqlite.js';
+import galleryRouter from './routes/gallery-robust.js';
 import { initializeDatabase } from './database/init.js';
+import { errorHandler, requestTracker, Logger } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +23,9 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Request tracking middleware (must be first)
+app.use(requestTracker);
 
 // Security middleware
 app.use(helmet({
@@ -88,23 +92,14 @@ app.use('/api/gallery', galleryRouter);
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({
-    error: 'Endpoint not found',
+    error: 'NOT_FOUND',
     message: `Cannot ${req.method} ${req.path}`,
+    trace_id: req.traceId
   });
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  
-  // Don't leak error details in production
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  res.status(err.status || 500).json({
-    error: isDevelopment ? err.message : 'Internal server error',
-    ...(isDevelopment && { stack: err.stack }),
-  });
-});
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // Initialize database and start server
 const startServer = async () => {

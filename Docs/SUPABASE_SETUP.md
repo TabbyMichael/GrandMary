@@ -157,4 +157,4 @@ Once working:
 3. Test on mobile devices
 4. Invite family and friends to use it
 
-Your memorial gallery will be live and ready to cherish Mary Wangui's memories! 🌹
+Your memorial gallery will be live and ready to cherish Mary Mathenge's memories! 🌹

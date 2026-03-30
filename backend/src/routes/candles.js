@@ -90,7 +90,7 @@ router.get('/count', async (req, res) => {
 
     res.json({
       totalCandles: count,
-      message: `${count} candles have been lit in memory of Mary Wangui`
+      message: `${count} candles have been lit in memory of Mary Mathenge`
     });
   } catch (error) {
     console.error('Error fetching candle count:', error);

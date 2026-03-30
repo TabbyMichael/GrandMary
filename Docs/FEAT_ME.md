@@ -1,7 +1,7 @@
 # 🌸 Everbloom Memorial Site - Feature Implementation
 
 ## 📋 Overview
-A comprehensive memorial website for Mary Wangui with tribute wall, digital candles, biography, timeline, and admin dashboard.
+A comprehensive memorial website for Mary Mathenge with tribute wall, digital candles, biography, timeline, and admin dashboard.
 
 ## 🎯 Core Features Implemented
 
@@ -210,4 +210,4 @@ This memorial website provides a beautiful, functional, and scalable platform fo
 
 The system handles thousands of users, manages content efficiently, and provides administrators with powerful tools for content management while maintaining security, performance, and accessibility standards.
 
-*Built with ❤️ for Mary Wangui's lasting memory*
+*Built with ❤️ for Mary Mathenge's lasting memory*

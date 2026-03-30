@@ -36,7 +36,7 @@ const SiteNav = () => {
     >
       <div className="container mx-auto px-6 flex items-center justify-between h-16">
         <a href="#" className="font-serif text-lg text-foreground">
-          Mary Wangui
+          Mary Mathenge
         </a>
 
         {/* Desktop */}

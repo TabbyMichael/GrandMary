@@ -1,7 +1,7 @@
 # 🎨 Memorial Gallery Feature - Live Database Integration
 
 ## 📋 Feature Summary
-Implemented a complete Memorial Gallery feature with real-time database integration using Supabase, allowing friends and family to share photos and videos in memory of Mary Wangui.
+Implemented a complete Memorial Gallery feature with real-time database integration using Supabase, allowing friends and family to share photos and videos in memory of Mary Mathenge.
 
 ## 🎯 Key Changes Made
 
@@ -183,12 +183,12 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_ksF2LGKTO4im_XKUMetKOw_ts-5FqIs
 
 The Memorial Gallery feature is now production-ready with:
 - **Complete functionality** for sharing memories
-- **Professional design** honoring Mary Wangui
+- **Professional design** honoring Mary Mathenge
 - **Scalable infrastructure** for family use
 - **Secure moderation** for content management
 - **Global accessibility** through Netlify deployment
 
-Friends and family can now easily share photos and videos, react to memories, leave comments, and browse through a beautiful, searchable gallery that truly honors Mary Wangui's legacy. 🌹
+Friends and family can now easily share photos and videos, react to memories, leave comments, and browse through a beautiful, searchable gallery that truly honors Mary Mathenge's legacy. 🌹
 
 ---
 

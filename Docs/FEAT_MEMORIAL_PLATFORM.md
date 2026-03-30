@@ -1,7 +1,7 @@
-# 🌹 FEAT ME: Complete Memorial Platform for Mary Wangui
+# 🌹 FEAT ME: Complete Memorial Platform for Mary Mathenge
 
 ## 📋 Feature Summary
-Transformed Everbloom from a static memorial website into a fully interactive, cloud-powered memorial platform where friends and family can share photos, videos, and heartfelt tributes in memory of Mary Wangui.
+Transformed Everbloom from a static memorial website into a fully interactive, cloud-powered memorial platform where friends and family can share photos, videos, and heartfelt tributes in memory of Mary Mathenge.
 
 ## 🎯 Major Achievements
 
@@ -25,7 +25,7 @@ Transformed Everbloom from a static memorial website into a fully interactive, c
 - **User Reactions**: Heart reactions on tributes with user identification
 - **Moderation System**: Admin approval for new tribute submissions
 - **Statistics Display**: Live counts of tributes and contributors
-- **Beautiful Design**: Respectful, elegant interface honoring Mary Wangui
+- **Beautiful Design**: Respectful, elegant interface honoring Mary Mathenge
 
 ### 🔧 **Technical Excellence**
 - **Modern Stack**: React + TypeScript + Supabase + Netlify
@@ -193,11 +193,11 @@ The Everbloom Memorial Platform now provides a **beautiful, lasting digital spac
 - **Express Love**: Leave heartfelt tributes and messages of remembrance
 - **Connect Together**: React, comment, and share memories with others
 - **Preserve Legacy**: Create a permanent archive of stories and experiences
-- **Honor Memory**: A respectful, elegant space befitting Mary Wangui's legacy
+- **Honor Memory**: A respectful, elegant space befitting Mary Mathenge's legacy
 
 This platform transforms a simple memorial website into a **living, breathing community space** where Mary's memory continues to inspire and bring comfort to those who loved her.
 
 ---
 
 **Status**: ✅ **Production Ready** - Complete memorial platform ready for deployment
-**Next Steps**: Deploy to Netlify and invite family to begin sharing memories of Mary Wangui 🌹
+**Next Steps**: Deploy to Netlify and invite family to begin sharing memories of Mary Mathenge 🌹

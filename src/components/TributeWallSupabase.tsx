@@ -173,7 +173,7 @@ const TributeWallSupabase = () => {
             {t.tributes?.title || "Share Your Memory"}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t.tributes?.description || "Share your memories and celebrate the life of Mary Wangui"}
+            {t.tributes?.description || "Share your memories and celebrate the life of Mary Mathenge"}
           </p>
           
           {stats && (
@@ -300,7 +300,7 @@ const TributeWallSupabase = () => {
           isOpen={isShareOpen}
           onClose={() => setIsShareOpen(false)}
           title={t.tributes?.shareTitle || "Share Tribute Wall"}
-          text={t.tributes?.shareText || "Share memories and tributes for Mary Wangui"}
+          text={t.tributes?.shareText || "Share memories and tributes for Mary Mathenge"}
         />
       </div>
     </section>
