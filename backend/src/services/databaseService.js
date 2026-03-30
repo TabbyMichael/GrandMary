@@ -1,4 +1,4 @@
-import { supabase } from '../supabase-config.js';
+import { supabase, supabaseAdmin } from '../supabase-config.js';
 import { getDatabase } from '../database/init.js';
 import { 
   DatabaseError, 
@@ -25,6 +25,7 @@ class DatabaseService {
 
   async executeWithFallback(operation, ...args) {
     const traceId = args[0]?.traceId || 'N/A';
+    const operationArgs = args.slice(1); // Remove trace object from operation args
     
     try {
       // Try Supabase first with circuit breaker and retry
@@ -32,7 +33,7 @@ class DatabaseService {
       
       return await this.supabaseBreaker.execute(async () => {
         return await RetryManager.withBackoff(async () => {
-          return await this.executeSupabaseOperation(operation, ...args);
+          return await this.executeSupabaseOperation(operation, ...operationArgs);
         }, {
           maxAttempts: 2,
           baseDelay: 500,
@@ -50,7 +51,7 @@ class DatabaseService {
       try {
         return await this.sqliteBreaker.execute(async () => {
           const db = await getDatabase();
-          return await this.executeSQLiteOperation(db, operation, ...args);
+          return await this.executeSQLiteOperation(db, operation, ...operationArgs);
         });
       } catch (sqliteError) {
         Logger.error('Both database operations failed', {
@@ -204,7 +205,7 @@ class DatabaseService {
   }
 
   async supabaseInsertPost(postData) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('gallery_posts')
       .insert([postData])
       .select();
@@ -249,25 +250,72 @@ class DatabaseService {
   }
 
   async supabaseGetStats() {
-    const { data, error } = await supabase
+    // Get total posts
+    const { data: totalData, error: totalError } = await supabase
       .from('gallery_posts')
-      .select(`
-        count(*) as total_posts,
-        count(CASE WHEN file_type = 'image' THEN 1 END) as total_images,
-        count(CASE WHEN file_type = 'video' THEN 1 END) as total_videos,
-        count(CASE WHEN status = 'approved' THEN 1 END) as approved_posts,
-        count(CASE WHEN status = 'pending' THEN 1 END) as pending_posts,
-        count(DISTINCT uploader_ip) as unique_uploaders,
-        sum(file_size) as total_storage_used,
-        avg(file_size) as average_file_size
-      `)
+      .select('count')
       .single();
 
-    if (error) {
-      throw new SupabaseConnectionError(`Get stats failed: ${error.message}`);
+    // Get image posts
+    const { data: imageData, error: imageError } = await supabase
+      .from('gallery_posts')
+      .select('count')
+      .eq('file_type', 'image')
+      .single();
+
+    // Get video posts
+    const { data: videoData, error: videoError } = await supabase
+      .from('gallery_posts')
+      .select('count')
+      .eq('file_type', 'video')
+      .single();
+
+    // Get approved posts
+    const { data: approvedData, error: approvedError } = await supabase
+      .from('gallery_posts')
+      .select('count')
+      .eq('status', 'approved')
+      .single();
+
+    // Get pending posts
+    const { data: pendingData, error: pendingError } = await supabase
+      .from('gallery_posts')
+      .select('count')
+      .eq('status', 'pending')
+      .single();
+
+    // Get unique uploaders
+    const { data: uploaderData, error: uploaderError } = await supabase
+      .from('gallery_posts')
+      .select('uploader_ip')
+      .not('uploader_ip', 'is', null);
+
+    // Get storage stats
+    const { data: storageData, error: storageError } = await supabase
+      .from('gallery_posts')
+      .select('file_size')
+      .not('file_size', 'is', null);
+
+    // Check for any errors
+    if (totalError || imageError || videoError || approvedError || pendingError || uploaderError || storageError) {
+      throw new SupabaseConnectionError(`Get stats failed: ${totalError?.message || imageError?.message || videoError?.message || approvedError?.message || pendingError?.message || uploaderError?.message || storageError?.message}`);
     }
 
-    return data;
+    // Calculate stats
+    const uniqueUploaders = uploaderData ? [...new Set(uploaderData.map(d => d.uploader_ip))].length : 0;
+    const totalStorage = storageData ? storageData.reduce((sum, d) => sum + (d.file_size || 0), 0) : 0;
+    const avgFileSize = storageData && storageData.length > 0 ? totalStorage / storageData.length : 0;
+
+    return {
+      total_posts: totalData?.count || 0,
+      total_images: imageData?.count || 0,
+      total_videos: videoData?.count || 0,
+      approved_posts: approvedData?.count || 0,
+      pending_posts: pendingData?.count || 0,
+      unique_uploaders: uniqueUploaders,
+      total_storage_used: totalStorage,
+      average_file_size: avgFileSize
+    };
   }
 
   async supabaseGetTags() {

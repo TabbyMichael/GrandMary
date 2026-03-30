@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Test</title>
+</head>
+<body>
+    <h1>Image Loading Test</h1>
+    
+    <h2>Test 1: Direct Image URL</h2>
+    <img src="http://localhost:3001/uploads/gallery/32d7b1a6-667c-4eb3-a8e0-b59c059a0d97-1774861420915.jpeg" 
+         alt="Test Image" 
+         style="max-width: 300px; border: 1px solid red;"
+         onload="console.log('Image loaded successfully')" 
+         onerror="console.error('Image failed to load')">
+    
+    <h2>Test 2: With CORS Headers</h2>
+    <img src="http://localhost:3001/uploads/gallery/32d7b1a6-667c-4eb3-a8e0-b59c059a0d97-1774861420915.jpeg" 
+         alt="Test Image 2" 
+         style="max-width: 300px; border: 1px solid blue;"
+         crossorigin="anonymous"
+         onload="console.log('Image 2 loaded successfully')" 
+         onerror="console.error('Image 2 failed to load')">
+    
+    <h2>Debug Info</h2>
+    <p>Open browser console to see loading results</p>
+    
+    <script>
+        // Test fetch
+        fetch('http://localhost:3001/uploads/gallery/32d7b1a6-667c-4eb3-a8e0-b59c059a0d97-1774861420915.jpeg')
+            .then(response => {
+                console.log('Fetch response:', response.status, response.statusText);
+                return response.blob();
+            })
+            .then(blob => {
+                console.log('Fetch blob size:', blob.size);
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    </script>
+</body>
+</html>

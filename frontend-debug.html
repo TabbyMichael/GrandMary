@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Debug Test</title>
+    <script>
+        // Test the exact same API call the frontend makes
+        async function testGalleryAPI() {
+            console.log('🔍 Testing Gallery API...');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/gallery/posts');
+                const data = await response.json();
+                
+                console.log('✅ API Response:', data);
+                
+                if (data.posts && data.posts.length > 0) {
+                    const post = data.posts[0];
+                    console.log('📸 First post:', post);
+                    
+                    // Construct the same URL the frontend would use
+                    const baseUrl = 'http://localhost:3001'; // This should come from VITE_API_URL
+                    const imageUrl = `${baseUrl}/uploads/gallery/${post.file_name}`;
+                    console.log('🔗 Image URL:', imageUrl);
+                    
+                    // Test if we can load the image
+                    const img = new Image();
+                    img.onload = () => console.log('✅ Image loaded successfully');
+                    img.onerror = (e) => console.error('❌ Image failed to load:', e);
+                    img.src = imageUrl;
+                    
+                    // Display the image
+                    document.getElementById('testImage').src = imageUrl;
+                    document.getElementById('postInfo').textContent = 
+                        `Title: ${post.title} | File: ${post.file_name} | Status: ${post.status}`;
+                } else {
+                    console.log('ℹ️ No posts found');
+                }
+            } catch (error) {
+                console.error('❌ API Error:', error);
+            }
+        }
+        
+        // Test on page load
+        window.onload = testGalleryAPI;
+    </script>
+</head>
+<body>
+    <h1>Frontend Gallery Debug Test</h1>
+    
+    <div id="postInfo">Loading...</div>
+    
+    <h2>Test Image:</h2>
+    <img id="testImage" alt="Test Image" style="max-width: 400px; border: 2px solid red;">
+    
+    <h2>Console Logs:</h2>
+    <p>Open browser console to see detailed debug information</p>
+    
+    <h2>Manual Test:</h2>
+    <button onclick="testGalleryAPI()">Re-test API</button>
+</body>
+</html>

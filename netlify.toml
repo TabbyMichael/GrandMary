@@ -9,3 +9,58 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Backend API proxy
+[[redirects]]
+  from = "/api/*"
+  to = "https://everbloom-backend.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Content Security Policy
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://everbloom-backend.onrender.com; frame-src 'none'; object-src 'none'; media-src 'self' blob:; manifest-src 'self'; worker-src 'self' blob:;"
+
+# API specific headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://everbloom-memorial.netlify.app"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID"
+    Access-Control-Allow-Credentials = "true"
+    Access-Control-Max-Age = "86400"
+
+# Security for static assets
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

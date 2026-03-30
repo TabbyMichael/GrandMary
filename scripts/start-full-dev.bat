@@ -69,7 +69,7 @@ echo ❤️  Health Check: http://localhost:3001/api/health
 echo.
 echo 📝 Admin Login ^(default^):
 echo    Username: admin
-echo    Password: admin123
+echo    Password: [See .env.example for secure setup]
 echo.
 echo ⚠️  Close this window to stop both servers
 echo.

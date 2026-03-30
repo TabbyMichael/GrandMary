@@ -1,160 +1,256 @@
-# 🚀 Supabase Connection Guide - Step by Step
+# Supabase Setup Guide for Everbloom
 
-## 📋 What You Need Before Starting
+This guide will help you set up Supabase as the primary database for the Everbloom memorial platform.
 
-1. ✅ Supabase project created
-2. ✅ Database schema already run
-3. ✅ Your Supabase URL and Anon Key
+## 🚀 Quick Setup
 
-## 🔧 Step 1: Get Your Supabase Credentials
+### 1. Create Supabase Project
 
-1. Go to your Supabase project
-2. Click **Project Settings** → **API**
-3. Copy these two values:
-   - **Project URL**: `https://your-project.supabase.co`
-   - **anon public key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+1. Go to [supabase.com](https://supabase.com)
+2. Click "Start your project" 
+3. Sign up with GitHub
+4. Click "New Project"
+5. Choose your organization
+6. Enter project details:
+   - **Project Name**: `everbloom` (or your preferred name)
+   - **Database Password**: Generate a strong password
+   - **Region**: Choose closest to your users
+7. Click "Create new project"
 
-## 🔧 Step 2: Create Environment File
+### 2. Get Your Supabase Credentials
 
-Create a file called `.env.local` in your project root:
+Once your project is ready, go to **Project Settings** → **API**:
 
-```env
-VITE_SUPABASE_URL=your-supabase-url-here
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+Project URL: https://your-project-id.supabase.co
+Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Service Role Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-**Example:**
+### 3. Set Up Database Schema
+
+1. Go to **SQL Editor** in your Supabase dashboard
+2. Copy the entire contents of `supabase-schema.sql`
+3. Paste it into the SQL Editor
+4. Click **Run** to execute the schema
+
+### 4. Configure Environment Variables
+
+#### Backend Configuration
+
+Create `backend/.env`:
+
 ```env
-VITE_SUPABASE_URL=https://abc123def456.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiYzEyM2RlZjQ1NiIsInR5cGUiOiJzZXJ2aWNlIiwicHJvamVjdF9pZCI6IjEyMzQ1Njc4IiwiaWF0IjoxNjE5MDAwMDAwLCJleHAiOjE5MzQ1NjAwMDB9.someLongKey
+# Server Configuration
+PORT=3001
+NODE_ENV=production
+
+# Supabase Configuration (Primary)
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Database Strategy
+DB_PRIMARY=supabase
+DB_FALLBACK_ENABLED=true
+
+# SQLite Backup (Fallback)
+DB_PATH=./database/everbloom.db
+
+# JWT Secret
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Admin Credentials
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change-this-password
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
-## 🔧 Step 3: Test the Connection
+#### Frontend Configuration
 
-1. Restart your development server:
+Create `.env` (in root directory):
+
+```env
+# Supabase Configuration (Primary)
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Local Backend (Fallback for Development)
+VITE_API_URL=http://localhost:3001/api
+
+# Database Strategy
+VITE_DB_PRIMARY=supabase
+```
+
+### 5. Install Dependencies
+
+```bash
+# Backend dependencies
+cd backend
+npm install @supabase/supabase-js
+
+# Frontend dependencies (already installed)
+cd ..
+npm install @supabase/supabase-js
+```
+
+### 6. Test the Configuration
+
+#### Backend Test
+
+```bash
+cd backend
+npm start
+```
+
+Test the health endpoint:
+```bash
+curl http://localhost:3001/api/health
+```
+
+#### Frontend Test
+
 ```bash
 npm run dev
 ```
 
-2. Open the browser to `http://localhost:8081`
+Visit `http://localhost:5173` and verify the gallery loads correctly.
 
-3. Navigate to the Gallery section
+## 🔧 Advanced Configuration
 
-4. You should see:
-   - Loading indicator
-   - Either sample data from your Supabase database
-   - Or an empty gallery (if no data yet)
+### Database Fallback Strategy
 
-## 🔧 Step 4: Verify Database Connection
+The system is configured with automatic fallback:
 
-Check the browser console (F12 → Console):
-- ✅ You should see NO Supabase connection errors
-- ✅ If you see sample data, it's working!
-- ❌ If you see errors, check your environment variables
+1. **Primary**: Supabase (cloud PostgreSQL)
+2. **Fallback**: SQLite (local database)
+3. **Alternative**: Local PostgreSQL (if configured)
 
-## 🔧 Step 5: Test Upload Functionality
+### Storage Configuration
 
-1. Click the "Upload" button in the gallery
-2. Fill in the form:
-   - Your name: `Test User`
-   - Relationship: `Developer`
-   - Title: `Test Upload`
-   - Caption: `Testing Supabase connection`
-3. Select a small image file
-4. Click "Upload Files"
+For file uploads, you can use either:
 
-**Expected Result:**
-- ✅ "Successfully uploaded file(s)!" message
-- ✅ File appears in Supabase Storage
-- ✅ New post appears in database (pending approval)
+1. **Supabase Storage** (recommended for production)
+2. **Local File Storage** (current setup)
 
-## 🔧 Step 6: Check Supabase Dashboard
+To enable Supabase Storage:
 
-1. Go to your Supabase project
-2. **Table Editor** → `gallery_posts`
-3. You should see your uploaded data
-4. **Storage** → `gallery` bucket
-5. You should see your uploaded file
-
-## 🔧 Step 7: Approve Content (Optional)
-
-1. In Supabase Table Editor
-2. Find your uploaded post
-3. Change `status` from `pending` to `approved`
-4. Refresh your website - the post should appear!
-
-## 🚀 Step 8: Deploy to Netlify
-
-### 8.1 Build Your Site
 ```bash
-npm run build
+# In Supabase dashboard, go to Storage
+# Create a new bucket named 'gallery'
+# Set bucket policy to public
 ```
 
-### 8.2 Add Environment Variables to Netlify
-1. Go to your Netlify site dashboard
-2. **Site settings** → **Environment variables**
-3. Add these variables:
-   - `VITE_SUPABASE_URL`: Your Supabase URL
-   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+### Row Level Security (RLS)
 
-### 8.3 Deploy
-1. Push your code to GitHub
-2. Netlify will auto-deploy
-3. Your live site will work with Supabase!
+The schema includes RLS policies for security:
 
-## 🔍 Troubleshooting
+- ✅ Public posts are viewable by everyone
+- ✅ Anyone can upload posts (requires admin approval)
+- ✅ Reactions and comments are moderated
+- ✅ Content reporting is enabled
 
-### Common Issues:
+### Performance Optimizations
 
-**1. "Supabase URL and Anon Key are required"**
-- ✅ Check your `.env.local` file exists
-- ✅ Verify the variable names are exact
-- ✅ Restart your dev server after adding variables
+The schema includes:
 
-**2. "No data showing in gallery"**
-- ✅ Check if database has sample data
-- ✅ Run the SQL schema if needed
-- ✅ Check browser console for errors
+- ✅ Proper indexes for fast queries
+- ✅ GIN index for tag searches
+- ✅ Timestamp triggers for updated_at
+- ✅ Foreign key constraints for data integrity
 
-**3. "Upload fails"**
-- ✅ Check Supabase Storage policies
-- ✅ Verify file size is under 100MB
-- ✅ Check file type (images/videos only)
+## 🚨 Security Considerations
 
-**4. "CORS errors"**
-- ✅ Add your Netlify domain to Supabase CORS settings
-- ✅ In Supabase: Settings → API → CORS
+### 1. Environment Variables
 
-### Debug Steps:
-1. Check browser console (F12)
-2. Check Supabase logs
-3. Verify environment variables
-4. Test with sample data first
+- Never commit `.env` files to git
+- Use strong, unique secrets
+- Rotate keys regularly
 
-## 🎉 Success Indicators
+### 2. Database Access
 
-You know it's working when:
-- ✅ Gallery loads without errors
-- ✅ Sample data appears (or you can upload)
-- ✅ Upload functionality works
-- ✅ Reactions and comments work
-- ✅ Mobile responsive
-- ✅ Multilingual support works
+- Use service role key only in backend
+- Use anon key in frontend
+- Enable RLS on all tables
 
-## 📞 Need Help?
+### 3. File Uploads
 
-If you get stuck:
-1. Check the browser console for specific errors
-2. Verify your Supabase credentials
-3. Make sure the database schema was run
-4. Check that your environment variables are set correctly
+- Validate file types and sizes
+- Scan uploads for malware
+- Consider virus scanning for production
 
-## 🚀 Next Steps
+## 🔄 Migration from SQLite
 
-Once working:
-1. Upload real photos and videos
-2. Test all features (reactions, comments, sharing)
-3. Test on mobile devices
-4. Invite family and friends to use it
+If you have existing SQLite data:
 
-Your memorial gallery will be live and ready to cherish Mary Mathenge's memories! 🌹
+1. Export SQLite data:
+```bash
+cd backend
+sqlite3 database/everbloom.db .dump > sqlite-data.sql
+```
+
+2. Convert data to Supabase format
+3. Import via SQL Editor or migration script
+
+## 📊 Monitoring and Maintenance
+
+### Supabase Dashboard
+
+Monitor:
+- Database performance
+- API usage
+- Storage usage
+- Error logs
+
+### Health Checks
+
+Regular health checks:
+```bash
+curl https://your-app-url.com/api/health
+```
+
+### Backup Strategy
+
+- Supabase provides automatic backups
+- Consider additional exports for critical data
+- Test backup restoration regularly
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+1. **Connection Errors**
+   - Check Supabase URL and keys
+   - Verify network connectivity
+   - Check RLS policies
+
+2. **Permission Errors**
+   - Verify RLS policies are correct
+   - Check user authentication
+   - Review API key permissions
+
+3. **Performance Issues**
+   - Check database indexes
+   - Monitor query performance
+   - Consider connection pooling
+
+### Getting Help
+
+- Supabase Documentation: https://supabase.com/docs
+- Supabase Discord Community
+- GitHub Issues for this project
+
+## 🎉 Next Steps
+
+Once Supabase is configured:
+
+1. ✅ Test all gallery functionality
+2. ✅ Verify file uploads work
+3. ✅ Test admin approval workflow
+4. ✅ Deploy to production (Netlify)
+5. ✅ Monitor performance and usage
+
+Your Everbloom memorial platform is now running on Supabase with automatic SQLite fallback for maximum reliability!
