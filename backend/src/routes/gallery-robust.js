@@ -193,7 +193,7 @@ router.post('/upload', uploadLimiter, upload.array('files', 10), [
         file_type: fileType,
         mime_type: file.mimetype,
         file_size: file.size,
-        file_path: file.path,
+        file_path: `gallery/${file.filename}`,
         thumbnail_path: null,
         tags: tags,
         is_public: isPublic,

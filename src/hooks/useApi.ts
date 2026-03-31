@@ -186,22 +186,24 @@ export const useApiHealth = () => {
 };
 
 export const useApi = () => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('adminToken'));
-
   const get = async (endpoint: string) => {
+    const currentToken = localStorage.getItem('adminToken');
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json',
         },
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = data.error || data.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;
@@ -209,20 +211,24 @@ export const useApi = () => {
   };
 
   const put = async (endpoint: string) => {
+    const currentToken = localStorage.getItem('adminToken');
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json',
         },
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = data.error || data.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;
@@ -230,20 +236,24 @@ export const useApi = () => {
   };
 
   const deleteRequest = async (endpoint: string) => {
+    const currentToken = localStorage.getItem('adminToken');
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}${endpoint}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json',
         },
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = data.error || data.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;
@@ -254,8 +264,7 @@ export const useApi = () => {
     get,
     put,
     delete: deleteRequest,
-    token,
-    setToken,
+    token: localStorage.getItem('adminToken'),
   };
 };
 
