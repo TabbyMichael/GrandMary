@@ -17,6 +17,7 @@ router.get('/dashboard', async (req, res) => {
     // Get various statistics
     const [
       tributeStats,
+      galleryStats,
       candleStats,
       recentActivity,
       analyticsOverview
@@ -30,6 +31,22 @@ router.get('/dashboard', async (req, res) => {
             COUNT(CASE WHEN approved = FALSE THEN 1 END) as pending,
             COUNT(CASE WHEN created_at >= date('now', '-7 days') THEN 1 END) as this_week
           FROM tributes`,
+          [],
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          }
+        );
+      }),
+      // Gallery statistics
+      new Promise((resolve, reject) => {
+        db.get(
+          `SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved,
+            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
+            COUNT(CASE WHEN created_at >= date('now', '-7 days') THEN 1 END) as this_week
+          FROM gallery_posts`,
           [],
           (err, row) => {
             if (err) reject(err);
@@ -62,6 +79,15 @@ router.get('/dashboard', async (req, res) => {
             approved,
             created_at
           FROM tributes
+          WHERE created_at >= date('now', '-7 days')
+          UNION ALL
+          SELECT 
+            'gallery' as type,
+            id,
+            COALESCE(title, 'Gallery Post') as title,
+            CASE WHEN status = 'approved' THEN 1 ELSE 0 END as approved,
+            created_at
+          FROM gallery_posts
           WHERE created_at >= date('now', '-7 days')
           UNION ALL
           SELECT 
@@ -101,6 +127,7 @@ router.get('/dashboard', async (req, res) => {
 
     res.json({
       tributes: tributeStats,
+      gallery: galleryStats,
       candles: candleStats,
       analytics: analyticsOverview,
       recentActivity,
@@ -358,6 +385,188 @@ router.get('/analytics', async (req, res) => {
   } catch (error) {
     console.error('Error fetching analytics:', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// GET /api/admin/gallery - Manage gallery posts (admin view)
+router.get('/gallery', validatePagination, async (req, res) => {
+  try {
+    const { page, limit, status } = req.pagination;
+    const offset = (page - 1) * limit;
+
+    const db = await getDatabase();
+
+    // Build query based on status
+    let whereClause = 'WHERE 1=1';
+    const params = [];
+
+    if (status === 'approved') {
+      whereClause += ' AND status = "approved"';
+    } else if (status === 'pending') {
+      whereClause += ' AND status = "pending"';
+    } else if (status === 'rejected') {
+      whereClause += ' AND status = "rejected"';
+    }
+
+    // Get total count
+    const totalCount = await new Promise((resolve, reject) => {
+      db.get(
+        `SELECT COUNT(*) as count FROM gallery_posts ${whereClause}`,
+        params,
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        }
+      );
+    });
+
+    // Get gallery posts
+    const posts = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT * FROM gallery_posts 
+        ${whereClause}
+        ORDER BY created_at DESC 
+        LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
+
+    res.json({
+      posts,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        itemsPerPage: limit,
+        hasNextPage: page < Math.ceil(totalCount / limit),
+        hasPreviousPage: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin gallery posts:', error);
+    res.status(500).json({ error: 'Failed to fetch gallery posts' });
+  }
+});
+
+// PUT /api/admin/gallery/:id/approve - Approve a gallery post
+router.put('/gallery/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const clientInfo = getClientInfo(req);
+
+    const db = await getDatabase();
+
+    // Check if post exists
+    const post = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id, title FROM gallery_posts WHERE id = ?',
+        [id],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: 'Gallery post not found' });
+    }
+
+    // Update post status
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE gallery_posts SET status = "approved", updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [id],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    // Log analytics event
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO analytics (event_type, event_data, ip_address, user_agent) VALUES (?, ?, ?, ?)',
+        ['gallery_post_approved', JSON.stringify({ postId: id, adminId: req.user.id }), clientInfo.ip, clientInfo.userAgent],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({
+      message: 'Gallery post approved successfully',
+      postId: id,
+    });
+  } catch (error) {
+    console.error('Error approving gallery post:', error);
+    res.status(500).json({ error: 'Failed to approve gallery post' });
+  }
+});
+
+// DELETE /api/admin/gallery/:id - Delete a gallery post
+router.delete('/gallery/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const clientInfo = getClientInfo(req);
+
+    const db = await getDatabase();
+
+    // Check if post exists
+    const post = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id, file_path FROM gallery_posts WHERE id = ?',
+        [id],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: 'Gallery post not found' });
+    }
+
+    // Delete from database
+    await new Promise((resolve, reject) => {
+      db.run(
+        'DELETE FROM gallery_posts WHERE id = ?',
+        [id],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    // Note: We could also delete the physical file here if needed
+
+    // Log analytics event
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO analytics (event_type, event_data, ip_address, user_agent) VALUES (?, ?, ?, ?)',
+        ['gallery_post_deleted', JSON.stringify({ postId: id, adminId: req.user.id }), clientInfo.ip, clientInfo.userAgent],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({
+      message: 'Gallery post deleted successfully',
+      postId: id,
+    });
+  } catch (error) {
+    console.error('Error deleting gallery post:', error);
+    res.status(500).json({ error: 'Failed to delete gallery post' });
   }
 });
 

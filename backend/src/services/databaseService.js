@@ -123,12 +123,14 @@ class DatabaseService {
       sortOrder = 'DESC'
     } = options;
 
+    // Use left joins by removing !inner to ensure all posts are returned
+    // even those without reactions or comments
     let query = supabase
       .from('gallery_posts')
       .select(`
         *,
-        gallery_reactions!inner(count),
-        gallery_comments!inner(count)
+        gallery_reactions(count),
+        gallery_comments(count)
       `, { count: 'exact' });
 
     query = query.eq('status', 'approved').eq('is_public', true);
@@ -136,7 +138,7 @@ class DatabaseService {
     if (type) query = query.eq('file_type', type);
     if (search) query = query.or(`title.ilike.%${search}%,caption.ilike.%${search}%`);
     if (tags) {
-      const tagArray = tags.split(',').map(tag => tag.trim());
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
       query = query.contains('tags', tagArray);
     }
 
@@ -151,14 +153,18 @@ class DatabaseService {
       throw new SupabaseConnectionError(`Query failed: ${error.message}`);
     }
 
+    // Fix: PostgREST count might be null if there are issues with the query
+    // In that case, use data.length as fallback for total count if it's the only page
+    const totalItems = count !== null ? count : (page === 1 && data.length < limit ? data.length : 0);
+
     return {
       posts: data || [],
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil((count || 0) / limit),
-        totalItems: count || 0,
+        totalPages: Math.ceil(totalItems / limit),
+        totalItems: totalItems,
         itemsPerPage: limit,
-        hasNextPage: offset + limit < (count || 0),
+        hasNextPage: offset + limit < totalItems,
         hasPreviousPage: page > 1
       }
     };
@@ -184,7 +190,7 @@ class DatabaseService {
     const [reactionsResult, commentsResult] = await Promise.allSettled([
       supabase
         .from('gallery_reactions')
-        .select('reaction_type, count')
+        .select('reaction_type')
         .eq('post_id', id),
       supabase
         .from('gallery_comments')
@@ -194,7 +200,19 @@ class DatabaseService {
         .order('created_at', { ascending: true })
     ]);
 
-    const reactions = reactionsResult.status === 'fulfilled' ? reactionsResult.value.data || [] : [];
+    const rawReactions = reactionsResult.status === 'fulfilled' ? reactionsResult.value.data || [] : [];
+    
+    // Group reactions by type and count them
+    const reactionCounts = {};
+    rawReactions.forEach(r => {
+      reactionCounts[r.reaction_type] = (reactionCounts[r.reaction_type] || 0) + 1;
+    });
+    
+    const reactions = Object.entries(reactionCounts).map(([type, count]) => ({
+      reaction_type: type,
+      count
+    }));
+
     const comments = commentsResult.status === 'fulfilled' ? commentsResult.value.data || [] : [];
 
     return {
@@ -343,34 +361,279 @@ class DatabaseService {
       .sort((a, b) => b.count - a.count);
   }
 
-  // SQLite Operations (simplified implementations)
+  // SQLite Operations
   async sqliteGetPosts(db, options = {}) {
-    // This would need the full implementation from gallery-sqlite.js
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    const {
+      page = 1,
+      limit = 20,
+      type = null,
+      tags = null,
+      search = null,
+      sortBy = 'created_at',
+      sortOrder = 'DESC'
+    } = options;
+
+    const offset = (page - 1) * limit;
+
+    // Build WHERE clause
+    let whereClause = 'WHERE gp.status = ? AND gp.is_public = ?';
+    let queryParams = ['approved', 1];
+
+    if (type) {
+      whereClause += ' AND gp.file_type = ?';
+      queryParams.push(type);
+    }
+
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
+      whereClause += ` AND gp.tags LIKE ?`;
+      queryParams.push(`%${tagArray[0]}%`);
+    }
+
+    if (search) {
+      whereClause += ' AND (gp.title LIKE ? OR gp.caption LIKE ?)';
+      const searchPattern = `%${search}%`;
+      queryParams.push(searchPattern, searchPattern);
+    }
+
+    // Validate sort column
+    const allowedSortColumns = ['created_at', 'event_date', 'title'];
+    const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
+    const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    try {
+      // Get posts
+      const posts = await new Promise((resolve, reject) => {
+        const query = `
+          SELECT 
+            gp.*,
+            (SELECT COUNT(*) FROM gallery_reactions gr WHERE gr.post_id = gp.id) as reaction_count,
+            (SELECT COUNT(*) FROM gallery_comments gc WHERE gc.post_id = gp.id AND gc.is_approved = 1) as comment_count
+          FROM gallery_posts gp
+          ${whereClause}
+          ORDER BY gp.${sortColumn} ${sortDirection}
+          LIMIT ? OFFSET ?
+        `;
+
+        db.all(query, [...queryParams, limit, offset], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        });
+      });
+
+      // Get total count
+      const totalItems = await new Promise((resolve, reject) => {
+        const countQuery = `SELECT COUNT(*) as total FROM gallery_posts gp ${whereClause}`;
+        db.get(countQuery, queryParams, (err, row) => {
+          if (err) reject(err);
+          else resolve(row?.total || 0);
+        });
+      });
+
+      const formattedPosts = posts.map(post => ({
+        ...post,
+        tags: typeof post.tags === 'string' ? JSON.parse(post.tags) : (post.tags || []),
+        gallery_reactions: [{ count: post.reaction_count }],
+        gallery_comments: [{ count: post.comment_count }]
+      }));
+
+      return {
+        posts: formattedPosts,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalItems / limit),
+          totalItems: totalItems,
+          itemsPerPage: limit,
+          hasNextPage: offset + limit < totalItems,
+          hasPreviousPage: page > 1
+        }
+      };
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite query failed: ${error.message}`);
+    }
   }
 
   async sqliteGetPost(db, id) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      const post = await new Promise((resolve, reject) => {
+        db.get(
+          'SELECT * FROM gallery_posts WHERE id = ? AND status = ? AND is_public = ?',
+          [id, 'approved', 1],
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          }
+        );
+      });
+
+      if (!post) return null;
+
+      const reactions = await new Promise((resolve, reject) => {
+        db.all(
+          'SELECT reaction_type, COUNT(*) as count FROM gallery_reactions WHERE post_id = ? GROUP BY reaction_type',
+          [id],
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows || []);
+          }
+        );
+      });
+
+      const comments = await new Promise((resolve, reject) => {
+        db.all(
+          'SELECT * FROM gallery_comments WHERE post_id = ? AND is_approved = ? ORDER BY created_at ASC',
+          [id, 1],
+          (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows || []);
+          }
+        );
+      });
+
+      return {
+        post: {
+          ...post,
+          tags: typeof post.tags === 'string' ? JSON.parse(post.tags) : (post.tags || [])
+        },
+        reactions,
+        comments
+      };
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite get post failed: ${error.message}`);
+    }
   }
 
   async sqliteInsertPost(db, postData) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      const result = await new Promise((resolve, reject) => {
+        const columns = Object.keys(postData).join(', ');
+        const placeholders = Object.keys(postData).map(() => '?').join(', ');
+        const values = Object.values(postData).map(v => 
+          Array.isArray(v) ? JSON.stringify(v) : v
+        );
+
+        db.run(
+          `INSERT INTO gallery_posts (${columns}) VALUES (${placeholders})`,
+          values,
+          function(err) {
+            if (err) reject(err);
+            else resolve({ id: this.lastID });
+          }
+        );
+      });
+
+      return { id: result.id, ...postData };
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite insert failed: ${error.message}`);
+    }
   }
 
   async sqliteAddReaction(db, postId, reactionData) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      await new Promise((resolve, reject) => {
+        db.run(
+          `INSERT OR REPLACE INTO gallery_reactions 
+          (post_id, reaction_type, reactor_name, reactor_email, reactor_ip) 
+          VALUES (?, ?, ?, ?, ?)`,
+          [
+            postId, 
+            reactionData.reaction_type, 
+            reactionData.reactor_name, 
+            reactionData.reactor_email, 
+            reactionData.reactor_ip
+          ],
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
+      return { success: true };
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite add reaction failed: ${error.message}`);
+    }
   }
 
   async sqliteAddComment(db, postId, commentData) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      const result = await new Promise((resolve, reject) => {
+        db.run(
+          `INSERT INTO gallery_comments 
+          (post_id, commenter_name, commenter_email, commenter_ip, comment_text, is_approved) 
+          VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            postId, 
+            commentData.commenter_name, 
+            commentData.commenter_email, 
+            commentData.commenter_ip, 
+            commentData.comment_text,
+            commentData.is_approved ? 1 : 0
+          ],
+          function(err) {
+            if (err) reject(err);
+            else resolve({ id: this.lastID });
+          }
+        );
+      });
+      return { id: result.id, ...commentData };
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite add comment failed: ${error.message}`);
+    }
   }
 
   async sqliteGetStats(db) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      const stats = await new Promise((resolve, reject) => {
+        db.get(`
+          SELECT 
+            COUNT(*) as total_posts,
+            COUNT(CASE WHEN file_type = 'image' THEN 1 END) as total_images,
+            COUNT(CASE WHEN file_type = 'video' THEN 1 END) as total_videos,
+            COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_posts,
+            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_posts,
+            COUNT(DISTINCT uploader_ip) as unique_uploaders,
+            SUM(file_size) as total_storage_used,
+            AVG(file_size) as average_file_size
+          FROM gallery_posts
+        `, (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      return stats;
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite get stats failed: ${error.message}`);
+    }
   }
 
   async sqliteGetTags(db) {
-    throw new SQLiteConnectionError('SQLite operations not fully implemented');
+    try {
+      const rows = await new Promise((resolve, reject) => {
+        db.all(`
+          SELECT DISTINCT tags FROM gallery_posts 
+          WHERE status = 'approved' AND is_public = 1 AND tags IS NOT NULL
+        `, (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        });
+      });
+
+      const tagCounts = {};
+      rows.forEach(row => {
+        try {
+          const tags = typeof row.tags === 'string' ? JSON.parse(row.tags) : (row.tags || []);
+          tags.forEach(tag => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+        } catch (e) {}
+      });
+
+      return Object.entries(tagCounts)
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count);
+    } catch (error) {
+      throw new SQLiteConnectionError(`SQLite get tags failed: ${error.message}`);
+    }
   }
 
   // Health Check

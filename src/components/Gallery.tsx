@@ -24,11 +24,9 @@ const GalleryPostCard = ({ post, onOpen }: { post: GalleryPost; onOpen: (post: G
   };
 
   const getFileUrl = (fileName: string) => {
-    // Direct hardcoded URL as primary fallback
-    const url = `http://localhost:3001/uploads/gallery/${fileName}`;
-    console.log('🔗 Image URL:', url);
-    console.log('📁 File name:', fileName);
-    return url;
+    // Use the base URL from the API config, but point to /uploads
+    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001';
+    return `${baseUrl}/uploads/gallery/${fileName}`;
   };
 
   return (
@@ -104,7 +102,7 @@ const GalleryPostCard = ({ post, onOpen }: { post: GalleryPost; onOpen: (post: G
             <span>{post.uploader_name}</span>
             <span>{new Date(post.created_at).toLocaleDateString()}</span>
           </div>
-          {post.tags.length > 0 && (
+          {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {post.tags.slice(0, 3).map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
@@ -132,8 +130,9 @@ const PostLightbox = ({ post, isOpen, onClose }: { post: GalleryPost | null; isO
 
   if (!post) return null;
 
-  const getFileUrl = (filePath: string) => {
-    return `http://localhost:3001/uploads/gallery/${filePath}`;
+  const getFileUrl = (fileName: string) => {
+    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001';
+    return `${baseUrl}/uploads/gallery/${fileName}`;
   };
 
   const handleReaction = async (reactionType: string) => {
@@ -182,7 +181,7 @@ const PostLightbox = ({ post, isOpen, onClose }: { post: GalleryPost | null; isO
               <p className="text-sm">{post.caption}</p>
             )}
             
-            {post.tags.length > 0 && (
+            {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
                   <Badge key={tag} variant="secondary">
