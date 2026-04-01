@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import portraitImage from "@/assets/grandmother-portrait.jpg";
-import shoshImg1 from "@/assets/Shosh.png";
-import shoshImg2 from "@/assets/Shosh 2.png";
+import portraitImage from "@/assets/grandmother-portrait.webp";
+import shoshImg1 from "@/assets/Shosh.webp";
+import shoshImg2 from "@/assets/Shosh 2.webp";
 import { useTranslations } from "@/hooks/useTranslations";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -55,6 +55,7 @@ const HeroSection = () => {
                 alt="Mary Mathenge" 
                 width={800} 
                 height={1024} 
+                loading="lazy"
                 className="w-full h-full object-cover object-top transition-opacity duration-500" 
               />
               
