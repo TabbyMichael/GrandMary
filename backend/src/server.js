@@ -13,7 +13,7 @@ import candlesRouter from './routes/candles.js';
 import authRouter from './routes/auth.js';
 import adminRouter from './routes/admin.js';
 import galleryRouter from './routes/gallery-robust.js';
-import { initializeDatabase } from './database/init.js';
+import { supabase } from './supabase-config.js';
 import { errorHandler, requestTracker, Logger } from './middleware/errorHandler.js';
 import corsLogger from './middleware/corsLogger.js';
 
@@ -213,14 +213,23 @@ app.use('/api/*', (req, res) => {
 // Global error handler (must be last)
 app.use(errorHandler);
 
-// Initialize database and start server
+// Initialize Supabase and start server
 const startServer = async () => {
   try {
-    await initializeDatabase();
+    // Test Supabase connection
+    const { data, error } = await supabase.from('tributes').select('count').single();
+    if (error) {
+      console.error('❌ Supabase connection failed:', error.message);
+      console.log('⚠️  Please check your Supabase configuration in .env file');
+      process.exit(1);
+    }
+    
+    console.log('✅ Connected to Supabase database');
     
     app.listen(PORT, () => {
       console.log(`🚀 Everbloom Backend Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🗄️  Database: Supabase`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
       console.log(`📝 API Documentation: http://localhost:${PORT}/api/docs`);
     });

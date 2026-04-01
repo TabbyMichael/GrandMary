@@ -1,7 +1,7 @@
 import express from 'express';
-import { getDatabase } from '../database/init.js';
 import { validateTributeSubmission, validatePagination } from '../middleware/validation.js';
 import { getClientInfo } from '../utils/helpers.js';
+import { supabase } from '../supabase-config.js';
 
 const router = express.Router();
 
@@ -11,66 +11,55 @@ router.get('/', validatePagination, async (req, res) => {
     const { page, limit, status } = req.pagination;
     const offset = (page - 1) * limit;
 
-    const db = await getDatabase();
-
     // Build query based on status
-    let whereClause = 'WHERE 1=1';
-    const params = [];
+    let query = supabase
+      .from('tributes')
+      .select('*', { count: 'exact' });
 
     if (status === 'approved') {
-      whereClause += ' AND approved = TRUE';
+      query = query.eq('status', 'approved');
     } else if (status === 'pending') {
-      whereClause += ' AND approved = FALSE';
+      query = query.eq('status', 'pending');
     }
 
-    // Get total count
-    const totalCount = await new Promise((resolve, reject) => {
-      db.get(
-        `SELECT COUNT(*) as count FROM tributes ${whereClause}`,
-        params,
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row.count);
-        }
-      );
-    });
+    // Apply pagination
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Get tributes
-    const tributes = await new Promise((resolve, reject) => {
-      db.all(
-        `SELECT 
-          id, 
-          name, 
-          relationship, 
-          message, 
-          DATE(created_at) as date,
-          created_at
-        FROM tributes 
-        ${whereClause}
-        ORDER BY created_at DESC 
-        LIMIT ? OFFSET ?`,
-        [...params, limit, offset],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
+    const { data: tributes, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching tributes:', error);
+      return res.status(500).json({ error: 'Failed to fetch tributes' });
+    }
+
+    // Format response to match expected structure
+    const formattedTributes = tributes.map(tribute => ({
+      id: tribute.id,
+      name: tribute.author_name || tribute.name,
+      relationship: tribute.author_relationship || tribute.relationship,
+      message: tribute.message,
+      date: new Date(tribute.created_at).toISOString().split('T')[0],
+      created_at: tribute.created_at
+    }));
+
+    const totalPages = Math.ceil((count || 0) / limit);
 
     res.json({
-      tributes,
+      tributes: formattedTributes,
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        totalItems: totalCount,
+        totalPages: totalPages,
+        totalItems: count || 0,
         itemsPerPage: limit,
-        hasNextPage: page < Math.ceil(totalCount / limit),
-        hasPreviousPage: page > 1,
-      },
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
     });
   } catch (error) {
-    console.error('Error fetching tributes:', error);
-    res.status(500).json({ error: 'Failed to fetch tributes' });
+    console.error('Error in tributes endpoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -80,38 +69,47 @@ router.post('/', validateTributeSubmission, async (req, res) => {
     const { name, relationship, message, email } = req.body;
     const clientInfo = getClientInfo(req);
 
-    const db = await getDatabase();
+    // Insert tribute into Supabase
+    const { data, error } = await supabase
+      .from('tributes')
+      .insert({
+        author_name: name,
+        author_relationship: relationship,
+        author_email: email || null,
+        author_ip: clientInfo.ip,
+        message: message,
+        is_public: true,
+        status: 'pending', // Pending approval
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    const result = await new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO tributes (name, relationship, message, email, ip_address, user_agent)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [name, relationship, message, email || null, clientInfo.ip, clientInfo.userAgent],
-        function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve({ id: this.lastID });
-          }
-        }
-      );
-    });
+    if (error) {
+      console.error('Error submitting tribute:', error);
+      return res.status(500).json({ error: 'Failed to submit tribute' });
+    }
 
-    // Log analytics event
-    await new Promise((resolve, reject) => {
-      db.run(
-        'INSERT INTO analytics (event_type, event_data, ip_address, user_agent) VALUES (?, ?, ?, ?)',
-        ['tribute_submitted', JSON.stringify({ tributeId: result.id }), clientInfo.ip, clientInfo.userAgent],
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
+    // Log analytics event (optional - you can create an analytics table in Supabase too)
+    try {
+      await supabase
+        .from('analytics')
+        .insert({
+          event_type: 'tribute_submitted',
+          event_data: { tributeId: data.id },
+          ip_address: clientInfo.ip,
+          user_agent: clientInfo.userAgent,
+          created_at: new Date().toISOString()
+        });
+    } catch (analyticsError) {
+      console.error('Error logging analytics:', analyticsError);
+      // Don't fail the main request if analytics fails
+    }
 
     res.status(201).json({
       message: 'Tribute submitted successfully. It will be visible once approved.',
-      tributeId: result.id,
+      tributeId: data.id,
       status: 'pending_approval'
     });
   } catch (error) {
@@ -123,31 +121,53 @@ router.post('/', validateTributeSubmission, async (req, res) => {
 // GET /api/tributes/stats - Get tribute statistics
 router.get('/stats', async (req, res) => {
   try {
-    const db = await getDatabase();
+    // Get total tributes
+    const { count: totalCount, error: totalError } = await supabase
+      .from('tributes')
+      .select('*', { count: 'exact', head: true });
 
-    const stats = await new Promise((resolve, reject) => {
-      db.get(
-        `SELECT 
-          COUNT(*) as total,
-          COUNT(CASE WHEN approved = TRUE THEN 1 END) as approved,
-          COUNT(CASE WHEN approved = FALSE THEN 1 END) as pending,
-          DATE(created_at) as latest_date
-        FROM tributes
-        ORDER BY created_at DESC
-        LIMIT 1`,
-        [],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    if (totalError) {
+      console.error('Error getting total count:', totalError);
+      return res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
+
+    // Get approved tributes
+    const { count: approvedCount, error: approvedError } = await supabase
+      .from('tributes')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'approved');
+
+    if (approvedError) {
+      console.error('Error getting approved count:', approvedError);
+      return res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
+
+    // Get pending tributes
+    const { count: pendingCount, error: pendingError } = await supabase
+      .from('tributes')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+
+    if (pendingError) {
+      console.error('Error getting pending count:', pendingError);
+      return res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
+
+    // Get latest submission date
+    const { data: latestTribute, error: latestError } = await supabase
+      .from('tributes')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const latestDate = latestTribute ? latestTribute.created_at : null;
 
     res.json({
-      totalTributes: stats.total,
-      approvedTributes: stats.approved,
-      pendingTributes: stats.pending,
-      latestSubmissionDate: stats.latest_date,
+      totalTributes: totalCount || 0,
+      approvedTributes: approvedCount || 0,
+      pendingTributes: pendingCount || 0,
+      latestSubmissionDate: latestDate,
     });
   } catch (error) {
     console.error('Error fetching tribute stats:', error);
