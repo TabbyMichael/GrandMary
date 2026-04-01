@@ -1,14 +1,14 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import childhoodImg1 from "@/assets/timeline-childhood.webp";
+import childhoodImg1 from "@/assets/timeline-childhood.jpg";
 import childhoodImg2 from "@/assets/Childhood in the Highlands 2.png";
 import familyImg from "@/assets/timeline-family.jpg";
-import gardenImg1 from "@/assets/Garden of Grace 1.webp";
-import gardenImg2 from "@/assets/Garden of Grace2.webp";
-import gardenImg3 from "@/assets/Garden of Grace3.webp";
+import gardenImg1 from "@/assets/Garden of Grace 1.png";
+import gardenImg2 from "@/assets/Garden of Grace2.png";
+import gardenImg3 from "@/assets/Garden of Grace3.png";
 import gardenImg4 from "@/assets/Garden of Grace4.png";
-import shoshImg1 from "@/assets/Shosh.webp";
-import shoshImg2 from "@/assets/Shosh 2.webp";
+import shoshImg1 from "@/assets/Shosh.png";
+import shoshImg2 from "@/assets/Shosh 2.png";
 import { useTranslations } from "@/hooks/useTranslations";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
