@@ -7,6 +7,9 @@ export interface Tribute {
   message: string;
   date: string;
   created_at: string;
+  // Map from database fields
+  author_name?: string;
+  author_relationship?: string;
 }
 
 export interface CandleStats {

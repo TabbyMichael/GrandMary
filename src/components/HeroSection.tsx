@@ -1,9 +1,32 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import portraitImage from "@/assets/grandmother-portrait.jpg";
+import shoshImg1 from "@/assets/Shosh.png";
+import shoshImg2 from "@/assets/Shosh 2.png";
 import { useTranslations } from "@/hooks/useTranslations";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const HeroSection = () => {
   const t = useTranslations();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const heroImages = [portraitImage, shoshImg1, shoshImg2];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
+
+  // Auto-slide every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextImage();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [currentImageIndex]);
 
   return (
     <section className="relative min-h-screen living-background flex items-center justify-center overflow-hidden">
@@ -26,10 +49,49 @@ const HeroSection = () => {
             transition={{ duration: 1.5, delay: 0.3 }}
             className="relative"
           >
-            <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-rose-light shadow-2xl">
-              <img src={portraitImage} alt="Mary Mathenge" width={800} height={1024} className="w-full h-full object-cover object-top" />
+            <div className="w-56 h-56 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-rose-light shadow-2xl relative group">
+              <img 
+                src={heroImages[currentImageIndex]} 
+                alt="Mary Mathenge" 
+                width={800} 
+                height={1024} 
+                className="w-full h-full object-cover object-top transition-opacity duration-500" 
+              />
+              
+              {/* Slider Controls */}
+              <div className="absolute inset-0 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button 
+                  onClick={prevImage}
+                  className="ml-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={nextImage}
+                  className="mr-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-gold-soft opacity-40 candle-glow" />
+            
+            {/* Image Indicators */}
+            <div className="flex justify-center gap-1 mt-4">
+              {heroImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentImageIndex ? 'bg-primary' : 'bg-muted-foreground/30'
+                  }`}
+                  aria-label={`Go to image ${index + 1}`}
+                />
+              ))}
+            </div>
+            
+            <div className="absolute inset-0 rounded-full border-2 border-gold-soft opacity-40 candle-glow pointer-events-none" />
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.6 }}>
